@@ -1,5 +1,3 @@
-
-
 /**
  * StreamSense Reactor – Backend API
  *
@@ -14,19 +12,13 @@
  */
 
 import express from "express";
-import pg from "pg";
-
-const { Pool } = pg;
+// Import shared Postgres pool to keep DB connections centralized
+import pool from "./db/pool.js";
 
 // --- App & Config ------------------------------------------------------------
 
 const app = express();
 const PORT = process.env.PORT || 8000;
-
-// Database connection (provided via Docker Compose)
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 
 // Middleware to parse JSON bodies
 app.use(express.json());
