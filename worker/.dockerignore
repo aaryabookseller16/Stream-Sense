@@ -1,0 +1,23 @@
+# Node dependencies (installed inside container)
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+
+# OS files
+.DS_Store
+
+# Git
+.git
+.gitignore
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.*

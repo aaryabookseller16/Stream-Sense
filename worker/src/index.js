@@ -9,25 +9,13 @@
  * This is the "streaming analytics" part of the system.
  */
 
-import { Kafka } from "kafkajs";
-import pkg from "pg";
-const { Pool } = pkg;
-
-/**
- * Create a new pg Pool using DATABASE_URL from environment variables.
- */
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  // You can add more pool options here if needed
-});
+import { pool, query } from "./db.js";
+import { KAFKA_BROKERS, KAFKA_GROUP_ID, KAFKA_TOPIC, startConsumer } from "./kafka.js";
 
 /**
  * Environment configuration (kept simple on purpose).
  * In docker-compose we will set these values.
  */
-const KAFKA_BROKERS = (process.env.KAFKA_BROKERS || "kafka:9092").split(",");
-const KAFKA_TOPIC = process.env.KAFKA_TOPIC || "events";
-const KAFKA_GROUP_ID = process.env.KAFKA_GROUP_ID || "streamsense-worker";
 const SERVICE_NAME = process.env.SERVICE_NAME || "unknown-service";
 
 /**
@@ -72,7 +60,7 @@ async function upsertKpis() {
     avg_latency_ms: Number(avgLatencyMs.toFixed(2)),
   };
 
-  await pool.query(
+  await query(
     `
     INSERT INTO kpis (service_name, minute_bucket, total_events, error_events, avg_latency_ms)
     VALUES ($1, $2, $3, $4, $5)
@@ -119,35 +107,26 @@ async function main() {
   console.log("Group ID:", KAFKA_GROUP_ID);
   console.log("Service name:", SERVICE_NAME);
 
-  // Kafka client + consumer
-  const kafka = new Kafka({ clientId: "streamsense-worker", brokers: KAFKA_BROKERS });
-  const consumer = kafka.consumer({ groupId: KAFKA_GROUP_ID });
-
-  await consumer.connect();
-  await consumer.subscribe({ topic: KAFKA_TOPIC, fromBeginning: true });
-
   // Periodically persist KPI snapshot (every 5 seconds)
   const flushInterval = setInterval(() => {
     upsertKpis().catch((err) => console.error("Failed to upsert KPIs:", err));
   }, 5000);
 
-  // Consume messages
-  await consumer.run({
-    eachMessage: async ({ message }) => {
-      if (!message.value) return;
+  // Consume messages (Kafka wiring is in kafka.js)
+  const consumer = await startConsumer(async ({ message }) => {
+    if (!message?.value) return;
 
-      try {
-        const evt = parseEvent(message.value.toString());
+    try {
+      const evt = parseEvent(message.value.toString());
 
-        totalEvents += 1;
-        if (evt.status === "error") errorEvents += 1;
-        if (evt.latency_ms !== null) updateRollingLatency(evt.latency_ms);
-      } catch (err) {
-        // If parsing fails, count it as an error event
-        errorEvents += 1;
-        console.error("Bad event payload:", err);
-      }
-    },
+      totalEvents += 1;
+      if (evt.status === "error") errorEvents += 1;
+      if (evt.latency_ms !== null) updateRollingLatency(evt.latency_ms);
+    } catch (err) {
+      // If parsing fails, count it as an error event
+      errorEvents += 1;
+      console.error("Bad event payload:", err);
+    }
   });
 
   // Graceful shutdown

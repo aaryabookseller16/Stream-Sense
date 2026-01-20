@@ -1,19 +1,15 @@
-# StreamSense Reactor - Worker
-# This container runs continuously and consumes streaming events from Kafka
-
+# ---- build/runtime image ----
 FROM node:20-alpine
 
-# Set working directory inside container
+# Create app directory
 WORKDIR /app
 
-# Copy dependency manifests first (better Docker layer caching)
+# Install deps first (better Docker cache)
 COPY package*.json ./
-
-# Install production dependencies only
 RUN npm ci --omit=dev
 
-# Copy worker source code
+# Copy source
 COPY src ./src
 
-# Start the worker process
-CMD ["npm", "start"]
+# Run the worker
+CMD ["node", "src/index.js"]
