@@ -38,44 +38,32 @@ function updateRollingLatency(latencyMs) {
 
 /**
  * Write current KPI snapshot into Postgres.
- * We store one row per (service_name, minute_bucket).
+ * We store the latest KPI values as rows in the kpis table (metric_name, metric_value, updated_at).
  */
 async function upsertKpis() {
-  const now = new Date();
+  // Our current DB schema is a simple key/value table:
+  // kpis(metric_name TEXT, metric_value DOUBLE PRECISION, updated_at TIMESTAMPTZ)
+  // So we write 1 row per metric on each flush.
 
-  // Minute bucket like: 2026-01-20 12:34:00
-  const minuteBucket = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    now.getHours(),
-    now.getMinutes(),
-    0,
-    0
-  );
+  const metrics = [
+    [`${SERVICE_NAME}.total_events`, totalEvents],
+    [`${SERVICE_NAME}.error_events`, errorEvents],
+    [`${SERVICE_NAME}.avg_latency_ms`, Number(avgLatencyMs.toFixed(2))],
+  ];
 
-  const values = {
-    total_events: totalEvents,
-    error_events: errorEvents,
-    avg_latency_ms: Number(avgLatencyMs.toFixed(2)),
-  };
-
+  // Single multi-row insert (updated_at defaults to now())
   await query(
     `
-    INSERT INTO kpis (service_name, minute_bucket, total_events, error_events, avg_latency_ms)
-    VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (service_name, minute_bucket)
-    DO UPDATE SET
-      total_events = EXCLUDED.total_events,
-      error_events = EXCLUDED.error_events,
-      avg_latency_ms = EXCLUDED.avg_latency_ms
+    INSERT INTO kpis (metric_name, metric_value)
+    VALUES ($1, $2), ($3, $4), ($5, $6)
     `,
     [
-      SERVICE_NAME,
-      minuteBucket.toISOString(),
-      values.total_events,
-      values.error_events,
-      values.avg_latency_ms,
+      metrics[0][0],
+      metrics[0][1],
+      metrics[1][0],
+      metrics[1][1],
+      metrics[2][0],
+      metrics[2][1],
     ]
   );
 }

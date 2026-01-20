@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: streamsense
       POSTGRES_PASSWORD: streamsense
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
       # Runs only on FIRST startup of the volume
@@ -61,8 +61,10 @@ services:
   backend:
     build: ./backend
     container_name: streamsense-backend
+    # No host port needed in normal use (frontend proxies to backend over the Docker network).
+    # If you want to hit the API directly from your laptop, map 8001->8000 instead.
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       DATABASE_URL: postgresql://streamsense:streamsense@db:5432/streamsense
     depends_on:
@@ -88,14 +90,13 @@ services:
         condition: service_healthy
 
   # ---------------------------
-  # Frontend (optional: if you already created ./frontend Dockerfile)
-  # If you don't have a frontend yet, you can comment this out.
+  # Frontend (serves the React app via Nginx and proxies /api/* to the backend)
   # ---------------------------
   frontend:
     build: ./frontend
     container_name: streamsense-frontend
     ports:
-      - "3000:80"
+      - "3001:80"
     depends_on:
       backend:
         condition: service_started

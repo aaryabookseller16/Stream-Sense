@@ -1,17 +1,3 @@
-
-
-/**
- * Kafka helper (Worker)
- *
- * Goal:
- * - Keep Kafka setup in one place so index.js stays readable.
- *
- * Env vars (set in docker-compose.yml):
- * - KAFKA_BROKERS  e.g. "kafka:9092" or "kafka:9092,other:9092"
- * - KAFKA_GROUP_ID e.g. "streamsense-worker"
- * - KAFKA_TOPIC    e.g. "events"
- */
-
 import { Kafka } from "kafkajs";
 
 function requireEnv(name, fallback = undefined) {
@@ -60,8 +46,22 @@ export async function startConsumer(handler) {
 
   await consumer.run({
     eachMessage: async (payload) => {
+      const raw = payload?.message?.value?.toString?.() ?? "";
+
+      // Lightweight visibility: confirm we are actually consuming messages.
+      // (Kept simple on purpose — this is your main debugging signal.)
+      console.log("[worker] consumed event:", raw);
+
+      // Best-effort JSON parse so your handler can work with either a string or object.
+      let json = null;
       try {
-        await handler(payload);
+        json = raw ? JSON.parse(raw) : null;
+      } catch {
+        // ignore parse errors; handler can still use `raw`
+      }
+
+      try {
+        await handler({ ...payload, raw, json });
       } catch (err) {
         // We don't want one bad message to crash the worker.
         console.error("[worker] handler error:", err);
