@@ -1,2 +1,33 @@
-include:
-  - infra/docker-compose.yml
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: streamsense-db
+    environment:
+      POSTGRES_DB: streamsense
+      POSTGRES_USER: streamsense
+      POSTGRES_PASSWORD: streamsense
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # runs on FIRST startup of the volume
+      - ./backend/src/db/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U streamsense -d streamsense"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    container_name: streamsense-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://streamsense:streamsense@db:5432/streamsense
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db_data:
