@@ -114,6 +114,27 @@ footer {
   text-transform: capitalize;
 }
 
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.topbar__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  text-decoration: none;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.topbar__back:hover {
+  color: var(--cyan);
+  transform: translateX(-2px);
+}
+
 .topbar__status strong {
   font-size: 12px;
   font-weight: 650;
@@ -724,7 +745,8 @@ footer {
   }
 
   .brand small,
-  .topbar__status small {
+  .topbar__status small,
+  .topbar__back {
     display: none;
   }
 

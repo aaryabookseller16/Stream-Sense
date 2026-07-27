@@ -42,7 +42,8 @@ docker compose up --build
 
 Open:
 
-- Dashboard: [http://localhost:3001](http://localhost:3001)
+- Product overview: [http://localhost:3001](http://localhost:3001)
+- Live dashboard: [http://localhost:3001/dashboard](http://localhost:3001/dashboard)
 - Backend health: [http://localhost:8001/health](http://localhost:8001/health)
 - Metrics API: [http://localhost:8001/kpis?minutes=15](http://localhost:8001/kpis?minutes=15)
 
@@ -63,6 +64,13 @@ Reset the database and start from an empty state:
 ```bash
 docker compose down -v
 ```
+
+## Product experience
+
+The landing page explains what StreamSense monitors, shows the full event path,
+previews the live interface, and links into the separate dashboard route.
+Navigation uses browser history, animated route transitions, and direct-route
+fallbacks, so `/dashboard` can be opened or refreshed independently.
 
 ## Dashboard
 
