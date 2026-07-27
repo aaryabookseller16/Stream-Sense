@@ -1,15 +1,19 @@
 {
   "name": "streamsense-backend",
   "version": "1.0.0",
-  "description": "Backend API for StreamSense Reactor – real-time analytics platform",
-  "main": "src/index.js",
+  "private": true,
+  "description": "Metrics API for StreamSense",
   "type": "module",
   "scripts": {
-    "dev": "node src/index.js",
-    "start": "node src/index.js"
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "pg": "^8.11.5"
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
   }
 }

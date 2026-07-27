@@ -1,32 +1,22 @@
-/* Global reset and base styles */
-*, *::before, *::after {
-  box-sizing: border-box;
+:root {
+  font-family:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  color-scheme: dark;
 }
 
-html, body {
-  margin: 0;
-  padding: 0;
+html {
+  background: #07101c;
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, "Helvetica Neue", Arial, sans-serif;
-  background-color: #f9fafb;
-  color: #111827;
-  line-height: 1.5;
+  margin: 0;
 }
 
-/* Remove default link styling */
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-/* Tables behave predictably */
-table {
-  border-spacing: 0;
-}
-
-/* Utility */
-.hidden {
-  display: none;
+button,
+input,
+select {
+  font: inherit;
 }

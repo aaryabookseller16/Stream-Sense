@@ -1,14 +1,18 @@
 {
   "name": "streamsense-worker",
   "version": "1.0.0",
-  "description": "Kafka consumer and metrics aggregation worker for StreamSense Reactor",
-  "main": "src/index.js",
+  "private": true,
+  "description": "Kafka metrics aggregation worker for StreamSense",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "dependencies": {
     "kafkajs": "^2.2.4",
-    "pg": "^8.11.5"
+    "pg": "^8.13.1"
   }
 }

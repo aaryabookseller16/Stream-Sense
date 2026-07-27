@@ -1,7 +1,7 @@
 {
-  "name": "frontend",
+  "name": "streamsense-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,8 +9,10 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
-    "axios": "^1.13.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

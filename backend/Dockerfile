@@ -1,23 +1,13 @@
+FROM node:22-alpine
 
-
-# Use a small, stable Node image
-FROM node:20-alpine
-
-# Create app directory inside the container
+ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy package files first (better layer caching)
-COPY package*.json ./
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
 
-# Install production dependencies
-RUN if [ -f package-lock.json ]; then npm ci --omit=dev; else npm install --omit=dev; fi
+COPY src ./src
 
-# Copy the rest of the backend source
-COPY . .
-
-# Expose the API port (matches docker-compose mapping)
 EXPOSE 8000
-
-# Start the server
+USER node
 CMD ["npm", "start"]
-

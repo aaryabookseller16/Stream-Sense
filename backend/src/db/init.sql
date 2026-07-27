@@ -1,38 +1,17 @@
-
-
--- StreamSense Reactor
--- Initial database schema for backend KPIs
---
--- This schema is intentionally minimal.
--- The worker service is responsible for continuously updating these tables
--- based on streaming events consumed from Kafka / Redpanda.
-
--- ---------------------------------------------------------------------------
--- Table: kpis
--- Stores the latest value of each computed metric.
--- ---------------------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS kpis (
-    id SERIAL PRIMARY KEY,
-
-    -- Name of the metric (e.g. "events_per_second", "avg_latency")
-    metric_name TEXT NOT NULL,
-
-    -- Numeric value of the metric
-    metric_value DOUBLE PRECISION NOT NULL,
-
-    -- When this metric was last updated by the worker
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS service_kpis (
+    minute_bucket TIMESTAMPTZ NOT NULL,
+    service TEXT NOT NULL,
+    event_count INTEGER NOT NULL CHECK (event_count >= 0),
+    error_count INTEGER NOT NULL CHECK (error_count >= 0),
+    avg_latency_ms DOUBLE PRECISION NOT NULL CHECK (avg_latency_ms >= 0),
+    p95_latency_ms DOUBLE PRECISION NOT NULL CHECK (p95_latency_ms >= 0),
+    last_event_at TIMESTAMPTZ NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (minute_bucket, service)
 );
 
--- ---------------------------------------------------------------------------
--- Indexes
--- ---------------------------------------------------------------------------
+CREATE INDEX IF NOT EXISTS idx_service_kpis_updated_at
+    ON service_kpis (updated_at DESC);
 
--- Fast lookups by metric name
-CREATE INDEX IF NOT EXISTS idx_kpis_metric_name
-    ON kpis (metric_name);
-
--- Sort by most recent updates
-CREATE INDEX IF NOT EXISTS idx_kpis_updated_at
-    ON kpis (updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_service_kpis_service_bucket
+    ON service_kpis (service, minute_bucket DESC);

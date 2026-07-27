@@ -1,202 +1,204 @@
-# StreamSense Reactor
+# StreamSense
 
-**StreamSense Reactor** is a real-time streaming analytics platform that ingests high-volume service events, computes rolling KPIs, and visualizes live operational health through a web dashboard.
+StreamSense is a runnable, end-to-end streaming analytics product for monitoring
+service traffic, latency, and failures in near real time.
 
-It’s a small, production-style **event-driven architecture**: **Kafka (Redpanda)** for transport, a **streaming worker** for aggregation, **PostgreSQL** for durable storage, and a **React** frontend for near real-time visibility.
-
----
-
-## What it does
-
-- **Ingests events** (e.g., latency, status, service name, timestamps)
-- **Streams** them through Kafka (Redpanda)
-- **Aggregates** rolling metrics (e.g., last N minutes)
-- **Persists** KPIs to PostgreSQL
-- **Visualizes** the results in a React dashboard
-
-Use this repo as a reference for:
-- event-driven system design
-- stream processing fundamentals
-- containerized local infrastructure
-- clean repo organization for multi-service apps
-
----
+It ships with a realistic event simulator, a Kafka-compatible Redpanda broker,
+a Node.js aggregation worker, PostgreSQL storage, an Express metrics API, and a
+responsive React dashboard.
 
 ## Architecture
 
-### High-level system
-
 ```mermaid
 flowchart LR
-  subgraph Producers[Event Producers]
-    P1[Service A]
-    P2[Service B]
-    P3[Service C]
-  end
-
-  P1 -->|events| K[(Redpanda / Kafka)]
-  P2 -->|events| K
-  P3 -->|events| K
-
-  K -->|consume| W[Worker: stream processor]
-  W -->|upsert KPIs| DB[(PostgreSQL)]
-
-  DB -->|query KPIs| FE[React Dashboard]
+  S[Traffic simulator] -->|JSON events| K[(Redpanda / Kafka)]
+  K -->|consume| W[Metrics worker]
+  W -->|minute-level upserts| D[(PostgreSQL)]
+  D -->|window query| A[Express API]
+  A -->|poll every 4 seconds| U[React dashboard]
 ```
 
-### Event + KPI flow
+The worker groups events by service and UTC minute, then persists:
 
-```mermaid
-sequenceDiagram
-  autonumber
-  participant S as Service
-  participant K as Redpanda (Kafka)
-  participant W as Worker
-  participant D as PostgreSQL
-  participant U as UI
+- request count
+- error count and error rate
+- average latency
+- p95 latency
 
-  S->>K: publish event {service, latency_ms, status, ts}
-  W->>K: consume events (topic)
-  W->>W: update rolling aggregates (window)
-  W->>D: persist KPIs (upsert)
-  U->>D: read KPIs for dashboard
+Rows are idempotently upserted using `(minute_bucket, service)` as the primary
+key. In-memory aggregation retains two hours of active windows.
+
+## Quickstart
+
+### Requirements
+
+- Docker Desktop or another Docker installation with Compose
+
+### Start the product
+
+```bash
+docker compose up --build
 ```
 
----
+Open:
 
-## Tech stack
+- Dashboard: [http://localhost:3001](http://localhost:3001)
+- Backend health: [http://localhost:8001/health](http://localhost:8001/health)
+- Metrics API: [http://localhost:8001/kpis?minutes=15](http://localhost:8001/kpis?minutes=15)
 
-- **Streaming:** Redpanda (Kafka-compatible)
-- **Storage:** PostgreSQL
-- **Worker:** Node.js (stream consumer + rolling aggregation)
-- **Frontend:** React + Vite
-- **Infra:** Docker Compose
+The simulator publishes traffic automatically. Within a few seconds, the
+dashboard will show live telemetry for checkout, catalog, payments, identity,
+and notifications services.
 
----
+### Stop or reset
+
+Stop services while preserving PostgreSQL data:
+
+```bash
+docker compose down
+```
+
+Reset the database and start from an empty state:
+
+```bash
+docker compose down -v
+```
+
+## Dashboard
+
+The dashboard provides:
+
+- 15, 30, and 60-minute windows
+- total traffic and requests per minute
+- average and p95 latency
+- aggregate error rate
+- per-service health and performance
+- minute-level throughput and error visualization
+- automatic refresh and connection recovery
+- responsive layouts and reduced-motion accessibility
+
+A service is marked:
+
+- `healthy` when it is active and below the alert thresholds
+- `degraded` at 5% error rate or 800 ms average latency
+- `offline` when no updated metric has arrived for two minutes
+
+## Event contract
+
+Kafka topic: `events`
+
+```json
+{
+  "id": "bfe678aa-4d13-488d-8738-a8df6fdf82d4",
+  "service": "checkout",
+  "type": "request.completed",
+  "status": "ok",
+  "status_code": 200,
+  "latency_ms": 184,
+  "ts": "2026-01-20T12:00:32.000Z"
+}
+```
+
+Required fields:
+
+- `service`: normalized to a lowercase service identifier
+- `latency_ms`: finite number between 0 and 120,000
+
+An event is counted as an error when `status` is `error`/`failed` or
+`status_code` is 400 or greater.
+
+## API contract
+
+`GET /kpis?minutes=15`
+
+The `minutes` parameter is clamped between 5 and 120. The response contains:
+
+```json
+{
+  "generated_at": "2026-01-20T12:03:10.000Z",
+  "window_minutes": 15,
+  "summary": {
+    "total_events": 2450,
+    "events_per_minute": 163.3,
+    "error_rate": 2.24,
+    "avg_latency_ms": 178.4,
+    "p95_latency_ms": 694,
+    "active_services": 5
+  },
+  "timeline": [],
+  "services": []
+}
+```
+
+`GET /health` verifies both the API and its database connection.
+
+## Local development
+
+Node.js 22 or later is required.
+
+Install all JavaScript dependencies:
+
+```bash
+npm run install:all
+```
+
+Start infrastructure:
+
+```bash
+docker compose up db kafka
+```
+
+Then run each application in its own terminal:
+
+```bash
+npm --prefix backend run dev
+npm --prefix worker start
+npm --prefix simulator start
+npm --prefix frontend run dev
+```
+
+The development dashboard runs at
+[http://localhost:3000](http://localhost:3000) and proxies API calls to the
+backend at port `8001`.
+
+## Verification
+
+Run backend and aggregation unit tests, frontend linting, and a production
+frontend build:
+
+```bash
+npm run verify
+```
+
+Continuous integration runs the same checks for pushes and pull requests.
 
 ## Repository layout
 
 ```text
-StreamSense-Reactor/
-├── infra/
-│   ├── docker-compose.yml        # local stack (redpanda + postgres + services)
-│   ├── redpanda/                 # redpanda config / volumes
-│   └── postgres/                 # postgres init / volumes
-├── worker/
-│   ├── Dockerfile
-│   ├── package.json
-│   └── src/
-│       ├── index.js              # worker entrypoint
-│       ├── kafka.js              # kafka client + consumer wiring
-│       └── db.js                 # postgres connection + KPI writes
-├── frontend/
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── public/
-│   └── src/
-│       ├── main.jsx
-│       └── App.jsx               # dashboard UI
-└── README.md
+.
+├── backend/        # Express API and PostgreSQL schema
+├── frontend/       # React dashboard and Nginx configuration
+├── simulator/      # Kafka event generator
+├── worker/         # Kafka consumer and minute-window aggregation
+├── docker-compose.yml
+└── package.json    # repository-level development commands
 ```
-
----
-
-## Quickstart (Docker)
-
-### Prerequisites
-
-- Docker + Docker Compose
-
-### Run the full stack
-
-From the repo root:
-
-```bash
-docker compose -f infra/docker-compose.yml up --build
-```
-
-What you should expect:
-- Redpanda and PostgreSQL start
-- The worker connects to Kafka and begins processing
-- The frontend becomes available (port depends on your compose file)
-
-To stop:
-
-```bash
-docker compose -f infra/docker-compose.yml down
-```
-
-To reset everything (including volumes):
-
-```bash
-docker compose -f infra/docker-compose.yml down -v
-```
-
----
-
-## Local development (without Docker)
-
-> Docker is recommended for a consistent setup. Use local runs for faster iteration.
-
-### 1) Start infra only
-
-Start Redpanda + Postgres via Docker:
-
-```bash
-docker compose -f infra/docker-compose.yml up redpanda postgres
-```
-
-### 2) Run the worker
-
-```bash
-cd worker
-npm install
-npm run dev   # or: npm start (depending on package.json)
-```
-
-### 3) Run the frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
 
 ## Configuration
 
-Configuration is typically provided via environment variables (especially when using Docker Compose). Common values you’ll see:
+Docker Compose provides working development defaults. The main environment
+variables are:
 
-- `KAFKA_BROKERS` (e.g., `redpanda:9092`)
-- `KAFKA_TOPIC` (events topic name)
-- `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`
+- `DATABASE_URL`
+- `KAFKA_BROKERS`
+- `KAFKA_TOPIC`
+- `KAFKA_GROUP_ID`
+- `KAFKA_PARTITIONS`
+- `FLUSH_INTERVAL_MS`
+- `EVENT_INTERVAL_MS`
 
-If your Compose file defines different names, follow the values in `infra/docker-compose.yml`.
-
----
-
-## KPIs computed
-
-This project is designed to support rolling-window operational metrics, such as:
-
-- request **throughput** (events/sec)
-- **p50/p95 latency** (or rolling average)
-- **error rate** (non-2xx / failures)
-- **service health** by last-seen timestamp
-
-Exact definitions depend on the worker implementation in `worker/src/`.
-
----
-
-## Troubleshooting
-
-- **Worker can’t connect to Kafka:** verify broker address (container vs localhost) and topic name.
-- **DB connection errors:** confirm Postgres credentials + that the container is healthy.
-- **No data in UI:** ensure producers are emitting events and the worker is consuming/committing.
-
----
+These defaults are intended for local development, not production credentials.
 
 ## License
 
-MIT.
+MIT. See [LICENSE](LICENSE).

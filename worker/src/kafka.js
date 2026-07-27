@@ -1,73 +1,65 @@
-import { Kafka } from "kafkajs";
+import { Kafka, logLevel } from "kafkajs";
 
-function requireEnv(name, fallback = undefined) {
-  const val = process.env[name] ?? fallback;
-  if (!val) {
-    throw new Error(`Missing ${name} env var`);
-  }
-  return val;
+function readEnv(name, fallback) {
+  const value = process.env[name] ?? fallback;
+  if (!value) throw new Error(`${name} is not set`);
+  return value;
 }
 
-export const KAFKA_BROKERS = requireEnv("KAFKA_BROKERS", "kafka:9092")
+export const KAFKA_BROKERS = readEnv("KAFKA_BROKERS", "kafka:9092")
   .split(",")
-  .map((s) => s.trim())
+  .map((broker) => broker.trim())
   .filter(Boolean);
+export const KAFKA_GROUP_ID = readEnv(
+  "KAFKA_GROUP_ID",
+  "streamsense-worker-v1"
+);
+export const KAFKA_TOPIC = readEnv("KAFKA_TOPIC", "events");
 
-export const KAFKA_GROUP_ID = requireEnv("KAFKA_GROUP_ID", "streamsense-worker");
-export const KAFKA_TOPIC = requireEnv("KAFKA_TOPIC", "events");
-
-export const kafka = new Kafka({
+const kafka = new Kafka({
   clientId: "streamsense-worker",
   brokers: KAFKA_BROKERS,
+  logLevel: logLevel.INFO,
+  retry: {
+    initialRetryTime: 500,
+    retries: 12,
+  },
 });
 
-/**
- * Create and connect a Kafka consumer.
- * Consumer will join the group and receive partitions for the topic.
- */
-export async function createConsumer() {
-  const consumer = kafka.consumer({ groupId: KAFKA_GROUP_ID });
-  await consumer.connect();
-  return consumer;
+async function ensureTopic() {
+  const admin = kafka.admin();
+  await admin.connect();
+  try {
+    const topics = await admin.listTopics();
+    if (topics.includes(KAFKA_TOPIC)) return;
+
+    await admin.createTopics({
+      waitForLeaders: true,
+      topics: [
+        {
+          topic: KAFKA_TOPIC,
+          numPartitions: Number(process.env.KAFKA_PARTITIONS || 3),
+          replicationFactor: 1,
+        },
+      ],
+    });
+  } finally {
+    await admin.disconnect();
+  }
 }
 
-/**
- * Convenience helper:
- * - connects a consumer
- * - subscribes to the topic
- * - starts consuming with your message handler
- *
- * handler signature:
- *   async ({ topic, partition, message }) => void
- */
-export async function startConsumer(handler) {
-  const consumer = await createConsumer();
-  await consumer.subscribe({ topic: KAFKA_TOPIC, fromBeginning: true });
+export async function startConsumer(handler, onFatal) {
+  await ensureTopic();
+  const consumer = kafka.consumer({ groupId: KAFKA_GROUP_ID });
+  await consumer.connect();
+  await consumer.subscribe({ topic: KAFKA_TOPIC, fromBeginning: false });
 
-  await consumer.run({
-    eachMessage: async (payload) => {
-      const raw = payload?.message?.value?.toString?.() ?? "";
-
-      // Lightweight visibility: confirm we are actually consuming messages.
-      // (Kept simple on purpose — this is your main debugging signal.)
-      console.log("[worker] consumed event:", raw);
-
-      // Best-effort JSON parse so your handler can work with either a string or object.
-      let json = null;
-      try {
-        json = raw ? JSON.parse(raw) : null;
-      } catch {
-        // ignore parse errors; handler can still use `raw`
-      }
-
-      try {
-        await handler({ ...payload, raw, json });
-      } catch (err) {
-        // We don't want one bad message to crash the worker.
-        console.error("[worker] handler error:", err);
-      }
-    },
-  });
+  consumer
+    .run({
+      partitionsConsumedConcurrently: 3,
+      eachMessage: handler,
+    })
+    .catch(onFatal);
 
   return consumer;
 }
