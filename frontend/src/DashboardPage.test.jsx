@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import DashboardPage from "./DashboardPage.jsx";
 
 function jsonResponse(body, ok = true, status = 200) {
@@ -20,13 +21,13 @@ afterEach(() => {
 describe("DashboardPage", () => {
   it("shows a loading state before the first fetch resolves", () => {
     fetch.mockReturnValue(new Promise(() => {}));
-    render(<DashboardPage onNavigate={() => {}} />);
+    render(<DashboardPage dataMode="live" onNavigate={() => {}} />);
     expect(screen.getByLabelText(/loading telemetry/i)).toBeInTheDocument();
   });
 
   it("shows an error state and keeps retrying when the request fails", async () => {
     fetch.mockReturnValue(jsonResponse({ error: "metrics_unavailable" }, false, 503));
-    render(<DashboardPage onNavigate={() => {}} />);
+    render(<DashboardPage dataMode="live" onNavigate={() => {}} />);
 
     await waitFor(() => {
       expect(screen.getByText(/connection interrupted/i)).toBeInTheDocument();
@@ -51,7 +52,7 @@ describe("DashboardPage", () => {
       })
     );
 
-    render(<DashboardPage onNavigate={() => {}} />);
+    render(<DashboardPage dataMode="live" onNavigate={() => {}} />);
 
     expect(await screen.findByText(/listening for events/i)).toBeInTheDocument();
     expect(screen.getByText(/no completed metric windows yet/i)).toBeInTheDocument();
@@ -88,10 +89,26 @@ describe("DashboardPage", () => {
       })
     );
 
-    render(<DashboardPage onNavigate={() => {}} />);
+    render(<DashboardPage dataMode="live" onNavigate={() => {}} />);
 
     expect(await screen.findByText("500")).toBeInTheDocument();
     expect(screen.getByText("checkout")).toBeInTheDocument();
     expect(screen.getByText("healthy")).toBeInTheDocument();
+  });
+
+  it("runs as a self-contained showcase without requesting an API", async () => {
+    render(<DashboardPage dataMode="demo" onNavigate={() => {}} />);
+
+    expect(await screen.findByText(/interactive showcase/i)).toBeInTheDocument();
+    expect(screen.getByText("checkout")).toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("changes the showcase window from the segmented control", async () => {
+    const user = userEvent.setup();
+    render(<DashboardPage dataMode="demo" onNavigate={() => {}} />);
+
+    await user.click(await screen.findByRole("button", { name: "60m" }));
+    expect(screen.getByText(/across the last 60 minutes/i)).toBeInTheDocument();
   });
 });

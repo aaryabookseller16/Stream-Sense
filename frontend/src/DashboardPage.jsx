@@ -5,6 +5,7 @@ import { ThroughputChart } from "./components/ThroughputChart.jsx";
 import { ServiceList } from "./components/ServiceList.jsx";
 import { RecentMinutes } from "./components/RecentMinutes.jsx";
 import { formatNumber, formatTime } from "./components/formatters.js";
+import { createDemoMetrics } from "./demoMetrics.js";
 
 const REFRESH_INTERVAL_MS = 4_000;
 const WINDOW_OPTIONS = [15, 30, 60];
@@ -13,8 +14,9 @@ const WINDOW_OPTIONS = [15, 30, 60];
 // share a domain (e.g. behind nginx in Docker). Set to the deployed API's
 // origin when they're on different domains (e.g. Vercel + Railway).
 const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+const DEFAULT_DATA_MODE = import.meta.env.VITE_DATA_MODE || "demo";
 
-function DashboardPage({ onNavigate }) {
+function DashboardPage({ onNavigate, dataMode = DEFAULT_DATA_MODE, fetchImpl = fetch }) {
   const [windowMinutes, setWindowMinutes] = useState(15);
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,14 +30,18 @@ function DashboardPage({ onNavigate }) {
     async function fetchMetrics(background = false) {
       if (background) setRefreshing(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/kpis?minutes=${windowMinutes}`, {
-          signal: controller.signal,
-          headers: { Accept: "application/json" },
-        });
-        if (!response.ok) {
-          throw new Error(`Metrics request failed with ${response.status}`);
-        }
-        const payload = await response.json();
+        const payload =
+          dataMode === "demo"
+            ? createDemoMetrics(windowMinutes)
+            : await fetchImpl(`${API_BASE_URL}/api/kpis?minutes=${windowMinutes}`, {
+                signal: controller.signal,
+                headers: { Accept: "application/json" },
+              }).then((response) => {
+                if (!response.ok) {
+                  throw new Error(`Metrics request failed with ${response.status}`);
+                }
+                return response.json();
+              });
         if (!active) return;
         setMetrics(payload);
         setError(null);
@@ -63,7 +69,7 @@ function DashboardPage({ onNavigate }) {
       controller.abort();
       window.clearInterval(interval);
     };
-  }, [windowMinutes]);
+  }, [dataMode, fetchImpl, windowMinutes]);
 
   const summary = metrics?.summary;
   const systemStatus = useMemo(() => {
@@ -121,6 +127,18 @@ function DashboardPage({ onNavigate }) {
       </header>
 
       <main>
+        <div className={`data-banner data-banner--${dataMode}`} role="note">
+          <span className="data-banner__mark" aria-hidden="true" />
+          <p>
+            <strong>{dataMode === "demo" ? "Interactive showcase" : "Live pipeline"}</strong>
+            {dataMode === "demo"
+              ? "Deterministic sample telemetry is running in this browser. The repository includes the full live Kafka stack."
+              : "Telemetry is flowing from Kafka through PostgreSQL and the metrics API."}
+          </p>
+          <a href="https://github.com/aaryabookseller16/Stream-Sense" rel="noreferrer" target="_blank">
+            View architecture <span aria-hidden="true">↗</span>
+          </a>
+        </div>
         <section className="hero">
           <div>
             <p className="eyebrow">Operations overview</p>
@@ -144,7 +162,7 @@ function DashboardPage({ onNavigate }) {
             </div>
             <p className={refreshing ? "is-refreshing" : ""}>
               <span aria-hidden="true">↻</span>
-              Updated {formatTime(metrics?.generated_at)}
+              {dataMode === "demo" ? "Simulated" : "Updated"} {formatTime(metrics?.generated_at)}
             </p>
           </div>
         </section>
@@ -226,7 +244,9 @@ function DashboardPage({ onNavigate }) {
                   <p className="eyebrow">Window detail</p>
                   <h2>Recent minute buckets</h2>
                 </div>
-                <p className="panel__note">UTC-normalized · auto-refreshes every 4s</p>
+                <p className="panel__note">
+                  UTC-normalized · {dataMode === "demo" ? "sample data" : "refreshes every 4s"}
+                </p>
               </div>
               <RecentMinutes timeline={metrics?.timeline || []} />
             </section>
@@ -236,7 +256,7 @@ function DashboardPage({ onNavigate }) {
 
       <footer>
         <span>StreamSense Reactor</span>
-        <span>Kafka → Worker → PostgreSQL → API</span>
+        <span>{dataMode === "demo" ? "Browser showcase · reproducible sample data" : "Kafka → Worker → PostgreSQL → API"}</span>
       </footer>
     </div>
   );

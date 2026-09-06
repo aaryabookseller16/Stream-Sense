@@ -106,6 +106,45 @@
   text-transform: capitalize;
 }
 
+/* ---------- data provenance ---------- */
+
+.data-banner {
+  width: min(var(--max-width), calc(100% - 48px));
+  margin: var(--space-4) auto 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.data-banner__mark {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.data-banner p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.data-banner p strong {
+  color: var(--text-primary);
+  margin-right: var(--space-2);
+}
+
+.data-banner a {
+  color: var(--accent);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
 .live-dot {
   width: 8px;
   height: 8px;
@@ -228,18 +267,13 @@
 .loading-grid span {
   height: 96px;
   border-radius: var(--radius);
-  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-raised) 37%, var(--surface) 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.4s ease infinite;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  animation: loading-pulse 1.4s ease-in-out infinite alternate;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
+@keyframes loading-pulse {
+  to { opacity: 0.48; }
 }
 
 /* ---------- KPI cards ---------- */
@@ -595,4 +629,40 @@ td {
   justify-content: space-between;
   color: var(--text-muted);
   font-size: var(--font-size-sm);
+}
+
+@media (max-width: 700px) {
+  .topbar,
+  .hero,
+  .app-shell main,
+  .app-shell footer,
+  .data-banner,
+  .loading-grid {
+    width: min(100% - 28px, var(--max-width));
+  }
+
+  .data-banner {
+    grid-template-columns: auto 1fr;
+  }
+
+  .data-banner a {
+    grid-column: 2;
+  }
+
+  .topbar__actions,
+  .hero__controls {
+    width: 100%;
+    justify-content: space-between;
+    justify-items: start;
+  }
+
+  .metric-grid,
+  .loading-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel__header,
+  .app-shell footer {
+    flex-direction: column;
+  }
 }

@@ -1,95 +1,88 @@
 # StreamSense
 
-StreamSense is a runnable, end-to-end streaming analytics product for monitoring
+StreamSense is a recruiter-ready streaming analytics product for understanding
 service traffic, latency, and failures in near real time.
 
-It ships with a realistic event simulator, a Kafka-compatible Redpanda broker,
-a Node.js aggregation worker, PostgreSQL storage, an Express metrics API, and a
-responsive React dashboard.
+- **Live product showcase:** [streamsense-web.vercel.app](https://streamsense-web.vercel.app)
+- **Repository:** [github.com/aaryabookseller16/Stream-Sense](https://github.com/aaryabookseller16/Stream-Sense)
+
+![StreamSense social preview](frontend/public/og.png)
+
+The hosted experience uses deterministic sample telemetry so every visitor can
+evaluate the complete interface without credentials or a long-running broker.
+The repository also includes the full live pipeline: a traffic simulator,
+Kafka-compatible Redpanda broker, Node.js aggregation worker, PostgreSQL,
+Express API, and React dashboard.
+
+## Why it exists
+
+Raw logs make it difficult to understand how a distributed system is behaving.
+StreamSense turns request events into a focused operational view of throughput,
+error rates, latency, and service health. It is designed to demonstrate both
+stream-processing architecture and product judgment—not to replace a production
+observability platform.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-  S[Traffic simulator] -->|JSON events| K[(Redpanda / Kafka)]
-  K -->|consume| W[Metrics worker]
-  W -->|minute-level upserts| D[(PostgreSQL)]
+  S[Traffic simulator] -->|validated JSON events| K[(Redpanda / Kafka)]
+  K -->|consumer group| W[Metrics worker]
+  W -->|idempotent minute upserts| D[(PostgreSQL)]
   D -->|window query| A[Express API]
   A -->|poll every 4 seconds| U[React dashboard]
+  F[Deterministic showcase data] -->|Vercel only| U
 ```
 
-The worker groups events by service and UTC minute, then persists:
+The worker groups events by service and UTC minute and persists request count,
+error count, average latency, and p95 latency. `(minute_bucket, service)` is the
+database primary key, so repeated flushes update a stable window instead of
+creating duplicates. In-memory aggregation retains two hours of active windows.
 
-- request count
-- error count and error rate
-- average latency
-- p95 latency
+## Try the complete live pipeline
 
-Rows are idempotently upserted using `(minute_bucket, service)` as the primary
-key. In-memory aggregation retains two hours of active windows.
-
-## Quickstart
-
-### Requirements
-
-- Docker Desktop or another Docker installation with Compose
-
-### Start the product
+Requirements: Docker Desktop (or Docker Engine with Compose).
 
 ```bash
 docker compose up --build
 ```
 
-Open:
+Then open:
 
 - Product overview: [http://localhost:3001](http://localhost:3001)
 - Live dashboard: [http://localhost:3001/dashboard](http://localhost:3001/dashboard)
 - Backend health: [http://localhost:8001/health](http://localhost:8001/health)
 - Metrics API: [http://localhost:8001/kpis?minutes=15](http://localhost:8001/kpis?minutes=15)
 
-The simulator publishes traffic automatically. Within a few seconds, the
-dashboard will show live telemetry for checkout, catalog, payments, identity,
-and notifications services.
-
-### Stop or reset
-
-Stop services while preserving PostgreSQL data:
+The simulator begins publishing traffic automatically. Within a few seconds,
+the dashboard shows telemetry for checkout, catalog, payments, identity, and
+notifications.
 
 ```bash
+# Stop while preserving PostgreSQL data
 docker compose down
-```
 
-Reset the database and start from an empty state:
-
-```bash
+# Reset all local data
 docker compose down -v
 ```
 
 ## Product experience
 
-The landing page explains what StreamSense monitors, shows the full event path,
-previews the live interface, and links into the separate dashboard route.
-Navigation uses browser history, animated route transitions, and direct-route
-fallbacks, so `/dashboard` can be opened or refreshed independently.
+The interface includes:
 
-## Dashboard
+- A clear product story and visual explanation of the event path.
+- Separate 15, 30, and 60-minute windows.
+- Total traffic, requests per minute, average/p95 latency, and error rate.
+- Per-service health and performance states.
+- Minute-level throughput and error visualization plus an accessible data table.
+- Loading, empty, disconnected, and recovery states.
+- Keyboard focus, reduced-motion support, responsive layouts, and semantic HTML.
+- An explicit data-provenance banner distinguishing Vercel showcase data from
+  the live Docker pipeline.
 
-The dashboard provides:
-
-- 15, 30, and 60-minute windows
-- total traffic and requests per minute
-- average and p95 latency
-- aggregate error rate
-- per-service health and performance
-- minute-level throughput and error visualization
-- automatic refresh and connection recovery
-- responsive layouts and reduced-motion accessibility
-
-A service is marked:
-
-- `healthy` when it is active and below the alert thresholds
-- `degraded` at 5% error rate or 800 ms average latency
-- `offline` when no updated metric has arrived for two minutes
+A service is `healthy` while active and below its alert thresholds, `degraded`
+at a 5% error rate or 800 ms average latency, and `offline` if it has not
+reported for two minutes.
 
 ## Event contract
 
@@ -107,19 +100,14 @@ Kafka topic: `events`
 }
 ```
 
-Required fields:
-
-- `service`: normalized to a lowercase service identifier
-- `latency_ms`: finite number between 0 and 120,000
-
-An event is counted as an error when `status` is `error`/`failed` or
-`status_code` is 400 or greater.
+`service` is normalized to a lowercase identifier. `latency_ms` must be finite
+and between 0 and 120,000. An event is an error when `status` is `error` or
+`failed`, or when `status_code` is 400 or greater. Invalid events are rejected
+without stopping the consumer.
 
 ## API contract
 
-`GET /kpis?minutes=15`
-
-The `minutes` parameter is clamped between 5 and 120. The response contains:
+`GET /kpis?minutes=15` clamps `minutes` between 5 and 120 and returns:
 
 ```json
 {
@@ -138,87 +126,95 @@ The `minutes` parameter is clamped between 5 and 120. The response contains:
 }
 ```
 
-`GET /health` verifies both the API and its database connection.
+`GET /health` checks both the API process and its database connection. API
+responses disable caching, use security headers, enforce a small JSON body
+limit, rate-limit requests, and deny cross-origin browser access unless allowed
+origins are configured.
 
-## Local development
+## Development and verification
 
 Node.js 22 or later is required.
 
-Install all JavaScript dependencies:
-
 ```bash
-npm run install:all
+npm run install:all   # locked installs for all four applications
+npm run verify        # 18 unit/component tests, lint, production build
+npm run smoke:compose # clean end-to-end pipeline smoke test (requires Docker)
 ```
 
-Start infrastructure:
+For split-process development:
 
 ```bash
 docker compose up db kafka
-```
-
-Then run each application in its own terminal:
-
-```bash
 npm --prefix backend run dev
 npm --prefix worker start
 npm --prefix simulator start
 npm --prefix frontend run dev
 ```
 
-The development dashboard runs at
-[http://localhost:3000](http://localhost:3000) and proxies API calls to the
-backend at port `8001`.
+Set `VITE_DATA_MODE=live` when the development frontend should call the API.
+Without it, the Vite development server intentionally runs the deterministic
+showcase. The production Docker image sets live mode automatically.
 
-## Verification
-
-Run backend and aggregation unit tests, frontend tests and linting, and a
-production frontend build:
-
-```bash
-npm run verify
-```
-
-Continuous integration runs the same checks for pushes and pull requests.
+GitHub Actions runs locked installs, the complete verification suite, Compose
+configuration validation, and a clean Docker smoke test that waits until the
+simulator's events are queryable through the API.
 
 ## Deployment
 
-Deployed as three services on Railway (`backend`, `worker`, `simulator`, plus
-Railway's own Postgres plugin) behind Upstash Kafka as the production broker,
-with the frontend on Vercel as a static build. The worker/simulator hold a
-persistent Kafka connection, which is why they run on Railway rather than as
-Vercel serverless functions.
+The public website is a static Vite build deployed on Vercel. It has no secrets,
+database connection, or hidden service dependency. Direct navigation to
+`/dashboard` is handled by the committed Vercel rewrite.
 
-## Repository layout
-
-```text
-.
-├── backend/        # Express API and PostgreSQL schema
-├── frontend/       # React dashboard and Nginx configuration
-├── simulator/      # Kafka event generator
-├── worker/         # Kafka consumer and minute-window aggregation
-├── docker-compose.yml
-└── package.json    # repository-level development commands
+```bash
+cd frontend
+npm ci
+npm run build
+vercel --prod
 ```
+
+The full streaming runtime is intentionally documented as a Docker deployment,
+not represented as a hosted Railway/Upstash environment. Hosting the broker,
+worker, database, and API would require long-running managed services and is a
+separate production-infrastructure decision.
 
 ## Configuration
 
-Docker Compose provides working development defaults. The main environment
-variables are:
+Docker Compose contains safe local defaults. Runtime configuration includes:
 
-- `DATABASE_URL` — backend and worker
-- `KAFKA_BROKERS`, `KAFKA_TOPIC`, `KAFKA_GROUP_ID`, `KAFKA_PARTITIONS` — worker and simulator
-- `KAFKA_SSL` (`"true"`/unset), `KAFKA_SASL_MECHANISM`, `KAFKA_SASL_USERNAME`,
-  `KAFKA_SASL_PASSWORD` — worker and simulator; unset locally (plain Redpanda,
-  no auth), required against a managed broker like Upstash Kafka (SASL_SSL)
-- `FLUSH_INTERVAL_MS` — worker
-- `EVENT_INTERVAL_MS` — simulator
-- `CORS_ALLOWED_ORIGINS` — backend, comma-separated list of allowed browser
-  origins; empty denies all cross-origin requests rather than defaulting open
-- `VITE_API_URL` — frontend build-time only; empty means "same origin" (the
-  Docker/nginx setup), set to the backend's URL when frontend and backend are
-  deployed to different origins (e.g. Vercel + Railway)
+- `DATABASE_URL` — backend and worker PostgreSQL connection.
+- `KAFKA_BROKERS`, `KAFKA_TOPIC`, `KAFKA_GROUP_ID`, `KAFKA_PARTITIONS` — stream services.
+- `KAFKA_SSL`, `KAFKA_SASL_MECHANISM`, `KAFKA_SASL_USERNAME`,
+  `KAFKA_SASL_PASSWORD` — optional managed-broker security.
+- `FLUSH_INTERVAL_MS` and `EVENT_INTERVAL_MS` — pipeline cadence.
+- `CORS_ALLOWED_ORIGINS` — comma-separated browser origins; empty fails closed.
+- `VITE_API_URL` — optional cross-origin API base URL.
+- `VITE_DATA_MODE` — `demo` for the static showcase or `live` for API-backed data.
 
-These defaults are intended for local development, not production credentials.
+Never commit production credentials. `.env.example` documents local values and
+all other `.env` files are ignored.
+
+## Repository map
+
+```text
+.
+├── backend/        # Express API, PostgreSQL schema, and API tests
+├── frontend/       # React interface, deterministic showcase, and UI tests
+├── simulator/      # Kafka event generator
+├── worker/         # Kafka consumer, aggregation, and worker tests
+├── scripts/        # End-to-end Compose smoke test
+├── docs/           # Recruiter-facing release scorecard
+├── docker-compose.yml
+└── package.json    # Repository-level commands
+```
+
+## Engineering limits
+
+- The public site is a reproducible product showcase, not live production telemetry.
+- Aggregation is designed for a portfolio-scale demo; a high-volume deployment
+  would move percentile calculation to a bounded histogram or streaming sketch.
+- Authentication, alert delivery, and multi-tenant isolation are future product work.
+- The summary p95 is the highest service p95, a deliberate worst-service signal,
+  rather than a mathematically merged percentile across services.
 
 ## License
 

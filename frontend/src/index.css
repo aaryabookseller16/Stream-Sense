@@ -5,18 +5,18 @@
 :root {
   color-scheme: light;
 
-  --page: #f9f9f7;
-  --surface: #fcfcfb;
+  --page: #f4f1e9;
+  --surface: #faf8f2;
   --surface-raised: #ffffff;
-  --text-primary: #0b0b0b;
-  --text-secondary: #52514e;
-  --text-muted: #898781;
+  --text-primary: #171716;
+  --text-secondary: #56534d;
+  --text-muted: #817d74;
   --border: rgba(11, 11, 11, 0.1);
   --gridline: #e1e0d9;
   --baseline: #c3c2b7;
 
-  --accent: #4a3aa7;
-  --accent-strong: #38297f;
+  --accent: #4b3fa7;
+  --accent-strong: #342a7c;
   --danger: #d03b3b;
   --warning: #fab219;
   --success: #0ca30c;
@@ -100,6 +100,11 @@ body {
   margin: 0;
 }
 
+h1,
+h2 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -123,6 +128,12 @@ input,
 select {
   font: inherit;
   color: inherit;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 3px;
 }
 
 /* ---------- layout ---------- */
@@ -178,6 +189,7 @@ select {
   border: 1px solid var(--border);
   background: var(--surface-raised);
   color: var(--text-primary);
+  min-height: 44px;
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-base);

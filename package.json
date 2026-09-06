@@ -9,6 +9,7 @@
     "lint": "npm --prefix frontend run lint",
     "build": "npm --prefix frontend run build",
     "verify": "npm run test && npm run lint && npm run build",
+    "smoke:compose": "./scripts/smoke-compose.sh",
     "up": "docker compose up --build",
     "down": "docker compose down"
   },

@@ -1,6 +1,8 @@
 FROM node:22-alpine AS build
 
 WORKDIR /app
+ARG VITE_DATA_MODE=live
+ENV VITE_DATA_MODE=$VITE_DATA_MODE
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .

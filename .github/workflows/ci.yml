@@ -33,3 +33,9 @@ jobs:
 
       - name: Verify applications
         run: npm run verify
+
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+
+      - name: Exercise the complete streaming pipeline
+        run: npm run smoke:compose

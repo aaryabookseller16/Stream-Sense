@@ -121,14 +121,14 @@ function LandingPage({ onNavigate }) {
         <section className="landing-hero">
           <div className="landing-hero__copy">
             <p className="eyebrow">Event-streaming observability</p>
-            <h1>Every service tells a story. Read it live.</h1>
+            <h1>Every service leaves a signal. Make it legible.</h1>
             <p className="landing-hero__lede">
               StreamSense transforms high-volume request events into a focused,
               real-time picture of traffic, latency, and service health.
             </p>
             <div className="landing-hero__actions">
               <ProductLink className="button button-primary" onNavigate={onNavigate}>
-                Explore the live dashboard
+                Explore the dashboard
                 <span aria-hidden="true">→</span>
               </ProductLink>
               <a className="button" href="#how-it-works">
@@ -137,7 +137,7 @@ function LandingPage({ onNavigate }) {
             </div>
             <div className="landing-hero__proof" aria-label="Product facts">
               <span>
-                <strong>4 sec</strong> live refresh
+                <strong>4 sec</strong> refresh cadence
               </span>
               <span>
                 <strong>120 min</strong> query range
@@ -184,7 +184,7 @@ function LandingPage({ onNavigate }) {
 
         <section className="landing-section product-section">
           <div className="product-section__copy">
-            <p className="eyebrow">The live control plane</p>
+            <p className="eyebrow">The operational control plane</p>
             <h2>One view from pulse to problem.</h2>
             <p className="text-muted">
               Scan system health, read the traffic pattern, and compare every
@@ -238,9 +238,12 @@ function LandingPage({ onNavigate }) {
         <section className="landing-cta">
           <p className="eyebrow">See the stream for yourself</p>
           <h2>Move from raw events to a readable system.</h2>
-          <p className="text-muted">The demo is already running and producing live service traffic.</p>
+          <p className="text-muted">
+            Explore a reproducible browser showcase, then run the repository locally for the
+            complete live Kafka pipeline.
+          </p>
           <ProductLink className="button button-primary" onNavigate={onNavigate}>
-            Open the live dashboard
+            Open the dashboard showcase
             <span aria-hidden="true">→</span>
           </ProductLink>
         </section>
