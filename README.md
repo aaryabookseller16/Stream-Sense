@@ -171,14 +171,22 @@ backend at port `8001`.
 
 ## Verification
 
-Run backend and aggregation unit tests, frontend linting, and a production
-frontend build:
+Run backend and aggregation unit tests, frontend tests and linting, and a
+production frontend build:
 
 ```bash
 npm run verify
 ```
 
 Continuous integration runs the same checks for pushes and pull requests.
+
+## Deployment
+
+Deployed as three services on Railway (`backend`, `worker`, `simulator`, plus
+Railway's own Postgres plugin) behind Upstash Kafka as the production broker,
+with the frontend on Vercel as a static build. The worker/simulator hold a
+persistent Kafka connection, which is why they run on Railway rather than as
+Vercel serverless functions.
 
 ## Repository layout
 
@@ -197,13 +205,18 @@ Continuous integration runs the same checks for pushes and pull requests.
 Docker Compose provides working development defaults. The main environment
 variables are:
 
-- `DATABASE_URL`
-- `KAFKA_BROKERS`
-- `KAFKA_TOPIC`
-- `KAFKA_GROUP_ID`
-- `KAFKA_PARTITIONS`
-- `FLUSH_INTERVAL_MS`
-- `EVENT_INTERVAL_MS`
+- `DATABASE_URL` — backend and worker
+- `KAFKA_BROKERS`, `KAFKA_TOPIC`, `KAFKA_GROUP_ID`, `KAFKA_PARTITIONS` — worker and simulator
+- `KAFKA_SSL` (`"true"`/unset), `KAFKA_SASL_MECHANISM`, `KAFKA_SASL_USERNAME`,
+  `KAFKA_SASL_PASSWORD` — worker and simulator; unset locally (plain Redpanda,
+  no auth), required against a managed broker like Upstash Kafka (SASL_SSL)
+- `FLUSH_INTERVAL_MS` — worker
+- `EVENT_INTERVAL_MS` — simulator
+- `CORS_ALLOWED_ORIGINS` — backend, comma-separated list of allowed browser
+  origins; empty denies all cross-origin requests rather than defaulting open
+- `VITE_API_URL` — frontend build-time only; empty means "same origin" (the
+  Docker/nginx setup), set to the backend's URL when frontend and backend are
+  deployed to different origins (e.g. Vercel + Railway)
 
 These defaults are intended for local development, not production credentials.
 

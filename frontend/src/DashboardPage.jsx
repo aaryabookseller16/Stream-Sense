@@ -1,187 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import { MetricCard } from "./components/MetricCard.jsx";
+import { ThroughputChart } from "./components/ThroughputChart.jsx";
+import { ServiceList } from "./components/ServiceList.jsx";
+import { RecentMinutes } from "./components/RecentMinutes.jsx";
+import { formatNumber, formatTime } from "./components/formatters.js";
 
 const REFRESH_INTERVAL_MS = 4_000;
 const WINDOW_OPTIONS = [15, 30, 60];
 
-function formatNumber(value) {
-  return new Intl.NumberFormat("en-US", {
-    notation: value >= 10_000 ? "compact" : "standard",
-    maximumFractionDigits: 1,
-  }).format(value || 0);
-}
-
-function formatTime(value) {
-  if (!value) return "Waiting for data";
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    second: "2-digit",
-  }).format(new Date(value));
-}
-
-function formatMinute(value) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(new Date(value));
-}
-
-function MetricCard({ eyebrow, value, unit, detail, tone = "neutral" }) {
-  return (
-    <article className={`metric-card metric-card--${tone}`}>
-      <p className="metric-card__eyebrow">{eyebrow}</p>
-      <div className="metric-card__value-row">
-        <strong>{value}</strong>
-        {unit && <span>{unit}</span>}
-      </div>
-      <p className="metric-card__detail">{detail}</p>
-    </article>
-  );
-}
-
-function StatusPill({ status }) {
-  return (
-    <span className={`status-pill status-pill--${status}`}>
-      <span aria-hidden="true" />
-      {status}
-    </span>
-  );
-}
-
-function ThroughputChart({ timeline }) {
-  const maxEvents = Math.max(1, ...timeline.map((point) => point.event_count));
-  const labelStep = Math.max(1, Math.floor(timeline.length / 5));
-
-  return (
-    <div className="chart" aria-label="Request throughput by minute">
-      <div className="chart__grid" aria-hidden="true">
-        <span />
-        <span />
-        <span />
-        <span />
-      </div>
-      <div className="chart__bars">
-        {timeline.map((point, index) => {
-          const barHeight = (point.event_count / maxEvents) * 100;
-          const errorHeight = point.event_count
-            ? (point.error_count / point.event_count) * 100
-            : 0;
-          return (
-            <div
-              className="chart__column"
-              key={point.minute_bucket}
-              title={`${formatMinute(point.minute_bucket)} · ${point.event_count} requests · ${point.error_count} errors`}
-            >
-              <div className="chart__track">
-                <div
-                  className="chart__bar"
-                  style={{ height: `${Math.max(barHeight, point.event_count ? 4 : 0)}%` }}
-                >
-                  <span
-                    className="chart__errors"
-                    style={{ height: `${errorHeight}%` }}
-                  />
-                </div>
-              </div>
-              <span className="chart__label">
-                {index % labelStep === 0 || index === timeline.length - 1
-                  ? formatMinute(point.minute_bucket)
-                  : ""}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function ServiceList({ services }) {
-  if (services.length === 0) {
-    return (
-      <div className="empty-state">
-        <span className="empty-state__pulse" aria-hidden="true" />
-        <strong>Listening for events</strong>
-        <p>The simulator is warming up. Service telemetry will appear here shortly.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="service-list">
-      {services.map((service) => (
-        <article className="service-row" key={service.service}>
-          <div className="service-row__heading">
-            <div>
-              <strong>{service.service}</strong>
-              <span>{formatNumber(service.event_count)} requests</span>
-            </div>
-            <StatusPill status={service.status} />
-          </div>
-          <div className="service-row__metrics">
-            <span>
-              <small>Avg latency</small>
-              <strong>{formatNumber(service.avg_latency_ms)} ms</strong>
-            </span>
-            <span>
-              <small>Error rate</small>
-              <strong>{service.error_rate.toFixed(2)}%</strong>
-            </span>
-          </div>
-        </article>
-      ))}
-    </div>
-  );
-}
-
-function RecentMinutes({ timeline }) {
-  const populated = timeline
-    .filter((point) => point.event_count > 0)
-    .slice(-6)
-    .reverse();
-
-  return (
-    <div className="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Minute</th>
-            <th>Requests</th>
-            <th>Errors</th>
-            <th>Avg latency</th>
-            <th>P95 latency</th>
-          </tr>
-        </thead>
-        <tbody>
-          {populated.length === 0 ? (
-            <tr>
-              <td className="table-empty" colSpan="5">
-                No completed metric windows yet.
-              </td>
-            </tr>
-          ) : (
-            populated.map((point) => (
-              <tr key={point.minute_bucket}>
-                <td>
-                  <time dateTime={point.minute_bucket}>
-                    {formatMinute(point.minute_bucket)}
-                  </time>
-                </td>
-                <td>{formatNumber(point.event_count)}</td>
-                <td className={point.error_count ? "text-warn" : ""}>
-                  {formatNumber(point.error_count)}
-                </td>
-                <td>{formatNumber(point.avg_latency_ms)} ms</td>
-                <td>{formatNumber(point.p95_latency_ms)} ms</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  );
-}
+// Empty string means "same origin" — the default when frontend and backend
+// share a domain (e.g. behind nginx in Docker). Set to the deployed API's
+// origin when they're on different domains (e.g. Vercel + Railway).
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 function DashboardPage({ onNavigate }) {
   const [windowMinutes, setWindowMinutes] = useState(15);
@@ -197,7 +28,7 @@ function DashboardPage({ onNavigate }) {
     async function fetchMetrics(background = false) {
       if (background) setRefreshing(true);
       try {
-        const response = await fetch(`/api/kpis?minutes=${windowMinutes}`, {
+        const response = await fetch(`${API_BASE_URL}/api/kpis?minutes=${windowMinutes}`, {
           signal: controller.signal,
           headers: { Accept: "application/json" },
         });
