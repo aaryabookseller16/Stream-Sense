@@ -53,6 +53,16 @@ least 4/5, the total must reach 26/30, and no critical finding may remain.
 - **Judgment:** The site now has portfolio-level memorability while retaining the
   hierarchy, provenance, accessibility, and restraint expected of an operations product.
 
+### 5. Navigation and landing-page consolidation
+
+- **Finding:** Top-level labels changed between routes, and the strongest project
+  narrative lived behind `/about` instead of introducing the site.
+- **Change:** Promoted the About experience to `/` and introduced one shared,
+  accessible header with identical About, Product, and Dashboard destinations on
+  every page. The former product landing now lives at `/product`.
+- **Judgment:** Information architecture is now predictable and the first page
+  gives recruiters the right context before they inspect the product surface.
+
 ## Final acceptance checklist
 
 - [x] Every README capability has code or test evidence.

@@ -1,4 +1,5 @@
 import "./LandingPage.css";
+import { Brand, PageLink, SiteHeader } from "./components/SiteHeader.jsx";
 
 const pipeline = [
   { name: "Services", detail: "Emit events" },
@@ -25,45 +26,6 @@ const features = [
     copy: "Per-service health states show where errors or latency cross operational thresholds, so teams know where to investigate first.",
   },
 ];
-
-export function PageLink({ children, className, href, onNavigate }) {
-  return (
-    <a
-      className={className}
-      href={href}
-      onClick={(event) => {
-        event.preventDefault();
-        onNavigate(href);
-      }}
-    >
-      {children}
-    </a>
-  );
-}
-
-export function Brand({ onNavigate }) {
-  return (
-    <a
-      className="landing-brand"
-      href="/"
-      aria-label="StreamSense home"
-      onClick={(event) => {
-        event.preventDefault();
-        onNavigate("/");
-      }}
-    >
-      <span className="landing-brand__mark" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </span>
-      <span>
-        <strong>StreamSense</strong>
-        <small>Realtime service intelligence</small>
-      </span>
-    </a>
-  );
-}
 
 function SignalStage() {
   const signals = ["checkout", "catalog", "payments", "identity", "notifications"];
@@ -126,18 +88,7 @@ function DashboardPreview() {
 function LandingPage({ onNavigate }) {
   return (
     <div className="landing-page">
-      <header className="landing-nav">
-        <Brand onNavigate={onNavigate} />
-        <nav aria-label="Product navigation">
-          <a href="#why">Why StreamSense</a>
-          <a href="#how-it-works">How it works</a>
-          <PageLink href="/about" onNavigate={onNavigate}>About</PageLink>
-        </nav>
-        <PageLink className="nav-cta" href="/dashboard" onNavigate={onNavigate}>
-          Open dashboard
-          <span aria-hidden="true">↗</span>
-        </PageLink>
-      </header>
+      <SiteHeader currentPath="/product" onNavigate={onNavigate} />
 
       <main>
         <section className="landing-hero">
@@ -275,7 +226,7 @@ function LandingPage({ onNavigate }) {
         <Brand onNavigate={onNavigate} />
         <p className="text-muted text-sm">Kafka → Worker → PostgreSQL → API → Interface</p>
         <div className="landing-footer__links">
-          <PageLink className="text-sm" href="/about" onNavigate={onNavigate}>About</PageLink>
+          <PageLink className="text-sm" href="/" onNavigate={onNavigate}>About</PageLink>
           <PageLink className="text-sm" href="/dashboard" onNavigate={onNavigate}>Dashboard ↗</PageLink>
         </div>
       </footer>

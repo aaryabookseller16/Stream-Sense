@@ -101,6 +101,99 @@ button:focus-visible {
 
 /* ---------- layout ---------- */
 
+.site-header {
+  width: min(var(--max-width), calc(100% - 48px));
+  margin: 0 auto;
+  padding: var(--space-5) 0 var(--space-4);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+}
+
+.site-header::before {
+  content: "";
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: var(--coral);
+}
+
+.site-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.site-brand strong,
+.site-brand small { display: block; }
+.site-brand strong { font-size: var(--font-size-lg); }
+.site-brand small { color: var(--text-muted); font-size: var(--font-size-sm); }
+
+.site-brand__mark {
+  display: inline-flex;
+  align-items: end;
+  gap: 3px;
+}
+
+.site-brand__mark i {
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.site-brand__mark i:nth-child(2) { height: 12px; background: var(--cobalt); }
+.site-brand__mark i:nth-child(3) { height: 8px; background: var(--coral); }
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.site-header__link {
+  min-height: 40px;
+  padding: 10px 14px;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+
+.site-header__link:hover {
+  color: var(--text-primary);
+  background: #e9e3ff;
+}
+
+.site-header__link[aria-current="page"] {
+  color: var(--ink);
+  background: var(--citron);
+}
+
+@media (max-width: 700px) {
+  .site-header {
+    width: min(100% - 28px, var(--max-width));
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .site-header nav {
+    width: 100%;
+  }
+
+  .site-header__link {
+    flex: 1;
+    text-align: center;
+  }
+}
+
 .page-width {
   width: min(var(--max-width), calc(100% - 48px));
   margin: 0 auto;
@@ -176,26 +269,6 @@ button:focus-visible {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
   transform: translateY(-1px);
-}
-
-.nav-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-height: 42px;
-  padding: 0 var(--space-4);
-  color: #ffffff;
-  background: var(--ink);
-  border-radius: 999px;
-  font-size: var(--font-size-sm);
-  font-weight: 650;
-  transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
-}
-
-.nav-cta:hover {
-  color: var(--ink);
-  background: var(--citron);
-  transform: translateY(-2px);
 }
 
 /* Status palette — fixed roles, never reused for arbitrary series/tones. */

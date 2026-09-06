@@ -12,19 +12,19 @@ afterEach(() => {
 });
 
 describe("App routes", () => {
-  it("renders the About page from a direct route", () => {
-    window.history.replaceState({}, "", "/about");
+  it("renders the About experience as the landing page", () => {
     render(<App />);
 
     expect(screen.getByRole("heading", { name: /operational data should feel obvious/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "About" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("navigates from the landing page to About without a reload", async () => {
+  it("navigates from About to Product without a reload", async () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getAllByRole("link", { name: "About" })[0]);
-    expect(screen.getByText(/about streamsense/i)).toBeInTheDocument();
-    expect(window.location.pathname).toBe("/about");
+    await user.click(screen.getByRole("link", { name: "Product" }));
+    expect(screen.getByRole("heading", { name: /every signal,?made legible/i })).toBeInTheDocument();
+    expect(window.location.pathname).toBe("/product");
   });
 });

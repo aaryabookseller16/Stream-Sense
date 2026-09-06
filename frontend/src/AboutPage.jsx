@@ -1,5 +1,5 @@
 import "./AboutPage.css";
-import { Brand, PageLink } from "./LandingPage.jsx";
+import { Brand, PageLink, SiteHeader } from "./components/SiteHeader.jsx";
 
 const decisions = [
   {
@@ -30,17 +30,7 @@ const architecture = [
 function AboutPage({ onNavigate }) {
   return (
     <div className="landing-page about-page">
-      <header className="landing-nav">
-        <Brand onNavigate={onNavigate} />
-        <nav aria-label="About navigation">
-          <PageLink href="/" onNavigate={onNavigate}>Product</PageLink>
-          <a href="#principles">Principles</a>
-          <a href="#architecture">Architecture</a>
-        </nav>
-        <PageLink className="nav-cta" href="/dashboard" onNavigate={onNavigate}>
-          Open dashboard <span aria-hidden="true">↗</span>
-        </PageLink>
-      </header>
+      <SiteHeader currentPath="/" onNavigate={onNavigate} />
 
       <main>
         <section className="about-hero">
@@ -120,7 +110,7 @@ function AboutPage({ onNavigate }) {
       <footer className="landing-footer">
         <Brand onNavigate={onNavigate} />
         <p className="text-muted text-sm">Built for clarity, tested as a system.</p>
-        <PageLink className="text-sm" href="/" onNavigate={onNavigate}>Product overview ↗</PageLink>
+        <PageLink className="text-sm" href="/product" onNavigate={onNavigate}>Product overview ↗</PageLink>
       </footer>
     </div>
   );

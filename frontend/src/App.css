@@ -7,116 +7,11 @@
   flex-direction: column;
 }
 
-/* ---------- topbar ---------- */
-
-.topbar {
-  border-bottom: 1px solid var(--border);
-  padding: var(--space-4) 0;
-}
-
-.topbar::before {
-  content: "";
-  position: fixed;
-  z-index: 20;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 4px;
-  background: var(--coral);
-}
-
-.topbar,
 .hero,
 .app-shell main,
 .app-shell footer {
   width: min(var(--max-width), calc(100% - 48px));
   margin: 0 auto;
-}
-
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  flex-wrap: wrap;
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.brand strong {
-  display: block;
-  font-size: var(--font-size-lg);
-}
-
-.brand small {
-  display: block;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.brand__mark {
-  display: inline-flex;
-  gap: 3px;
-}
-
-.brand__mark i {
-  width: 4px;
-  height: 18px;
-  border-radius: 2px;
-  background: var(--accent);
-}
-
-.brand__mark i:nth-child(2) {
-  height: 12px;
-  align-self: flex-end;
-  opacity: 0.7;
-  background: var(--cobalt);
-}
-
-.brand__mark i:nth-child(3) {
-  height: 8px;
-  align-self: flex-end;
-  opacity: 0.45;
-  background: var(--coral);
-}
-
-.topbar__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-5);
-}
-
-.topbar__back {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.topbar__back:hover {
-  color: var(--text-primary);
-}
-
-.topbar__status {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.topbar__status small {
-  display: block;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.topbar__status strong {
-  display: block;
-  text-transform: capitalize;
 }
 
 /* ---------- data provenance ---------- */
@@ -227,6 +122,17 @@
   display: grid;
   gap: var(--space-2);
   justify-items: end;
+}
+
+.dashboard-status {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-transform: capitalize;
 }
 
 .hero__controls p {
@@ -692,7 +598,6 @@ td {
 }
 
 @media (max-width: 700px) {
-  .topbar,
   .hero,
   .app-shell main,
   .app-shell footer,
@@ -709,7 +614,6 @@ td {
     grid-column: 2;
   }
 
-  .topbar__actions,
   .hero__controls {
     width: 100%;
     justify-content: space-between;

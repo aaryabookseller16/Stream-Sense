@@ -70,7 +70,7 @@ docker compose down -v
 
 The interface includes:
 
-- A vivid product landing page and dedicated About route explaining the event path and engineering decisions.
+- An About-led landing page explaining the engineering decisions, plus dedicated Product and Dashboard routes.
 - Separate 15, 30, and 60-minute windows.
 - Total traffic, requests per minute, average/p95 latency, and error rate.
 - Per-service health and performance states.

@@ -5,6 +5,7 @@ import { ThroughputChart } from "./components/ThroughputChart.jsx";
 import { ServiceList } from "./components/ServiceList.jsx";
 import { RecentMinutes } from "./components/RecentMinutes.jsx";
 import { formatNumber, formatTime } from "./components/formatters.js";
+import { SiteHeader } from "./components/SiteHeader.jsx";
 import { createDemoMetrics } from "./demoMetrics.js";
 
 const REFRESH_INTERVAL_MS = 4_000;
@@ -83,58 +84,7 @@ function DashboardPage({ onNavigate, dataMode = DEFAULT_DATA_MODE, fetchImpl = f
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <a
-          className="brand"
-          href="/"
-          aria-label="StreamSense product overview"
-          onClick={(event) => {
-            event.preventDefault();
-            onNavigate("/");
-          }}
-        >
-          <span className="brand__mark" aria-hidden="true">
-            <i />
-            <i />
-            <i />
-          </span>
-          <span>
-            <strong>StreamSense</strong>
-            <small>Realtime service intelligence</small>
-          </span>
-        </a>
-
-        <div className="topbar__actions">
-          <a
-            className="topbar__back"
-            href="/"
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate("/");
-            }}
-          >
-            <span aria-hidden="true">←</span>
-            Product overview
-          </a>
-          <a
-            className="topbar__back"
-            href="/about"
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate("/about");
-            }}
-          >
-            About
-          </a>
-          <div className="topbar__status" aria-live="polite">
-            <span className={`live-dot live-dot--${systemStatus}`} aria-hidden="true" />
-            <span>
-              <small>System status</small>
-              <strong>{systemStatus}</strong>
-            </span>
-          </div>
-        </div>
-      </header>
+      <SiteHeader currentPath="/dashboard" onNavigate={onNavigate} />
 
       <main>
         <div className={`data-banner data-banner--${dataMode}`} role="note">
@@ -158,6 +108,10 @@ function DashboardPage({ onNavigate, dataMode = DEFAULT_DATA_MODE, fetchImpl = f
             </p>
           </div>
           <div className="hero__controls">
+            <div className="dashboard-status" aria-live="polite">
+              <span className={`live-dot live-dot--${systemStatus}`} aria-hidden="true" />
+              <span>System {systemStatus}</span>
+            </div>
             <div className="window-picker" aria-label="Metrics time window">
               {WINDOW_OPTIONS.map((option) => (
                 <button

@@ -2,87 +2,9 @@
    defined once in index.css — nothing here defines its own palette. */
 
 .landing-page section,
-.landing-nav,
 .landing-footer {
   width: min(var(--max-width), calc(100% - 48px));
   margin: 0 auto;
-}
-
-/* ---------- nav ---------- */
-
-.landing-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding: var(--space-5) 0 var(--space-4);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-
-.landing-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.landing-brand strong {
-  display: block;
-  font-size: var(--font-size-lg);
-}
-
-.landing-brand small {
-  display: block;
-  color: var(--text-muted);
-  font-size: var(--font-size-sm);
-}
-
-.landing-brand__mark {
-  display: inline-flex;
-  gap: 3px;
-}
-
-.landing-brand__mark i {
-  width: 4px;
-  height: 18px;
-  border-radius: 2px;
-  background: var(--accent);
-}
-
-.landing-brand__mark i:nth-child(2) { background: var(--cobalt); }
-.landing-brand__mark i:nth-child(3) { background: var(--coral); }
-
-.landing-nav nav {
-  display: flex;
-  gap: var(--space-5);
-}
-
-.landing-nav nav a {
-  position: relative;
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.landing-nav nav a::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: -6px;
-  left: 0;
-  height: 2px;
-  background: var(--coral);
-  transform: scaleX(0);
-  transform-origin: right;
-  transition: transform 180ms ease;
-}
-
-.landing-nav nav a:hover::after {
-  transform: scaleX(1);
-  transform-origin: left;
-}
-
-.landing-nav nav a:hover {
-  color: var(--text-primary);
 }
 
 /* ---------- hero ---------- */
@@ -507,13 +429,8 @@
 
 @media (max-width: 700px) {
   .landing-page section,
-  .landing-nav,
   .landing-footer {
     width: min(100% - 28px, var(--max-width));
-  }
-
-  .landing-nav nav {
-    display: none;
   }
 
   .landing-hero {
