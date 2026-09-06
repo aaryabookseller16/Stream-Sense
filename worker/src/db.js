@@ -10,7 +10,14 @@ if (!connectionString) {
 export const pool = new Pool({
   connectionString,
   max: 5,
+  idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  statement_timeout: 10_000,
+  query_timeout: 10_000,
+});
+
+pool.on("error", (error) => {
+  console.error("[worker] unexpected PostgreSQL pool error", error);
 });
 
 export async function ensureSchema() {

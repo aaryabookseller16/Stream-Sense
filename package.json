@@ -5,7 +5,7 @@
   "description": "Real-time service analytics powered by Kafka, PostgreSQL, Node.js, and React",
   "scripts": {
     "install:all": "npm --prefix backend ci && npm --prefix worker ci && npm --prefix simulator ci && npm --prefix frontend ci",
-    "test": "npm --prefix backend test && npm --prefix worker test",
+    "test": "npm --prefix backend test && npm --prefix worker test && npm --prefix frontend test",
     "lint": "npm --prefix frontend run lint",
     "build": "npm --prefix frontend run build",
     "verify": "npm run test && npm run lint && npm run build",

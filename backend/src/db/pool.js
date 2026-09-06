@@ -12,6 +12,8 @@ const pool = new Pool({
   max: Number(process.env.PG_POOL_SIZE || 10),
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
+  statement_timeout: 10_000,
+  query_timeout: 10_000,
 });
 
 pool.on("error", (error) => {

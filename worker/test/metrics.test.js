@@ -69,3 +69,18 @@ test("MetricsStore creates per-minute, per-service snapshots", () => {
   store.markPersisted(dirty);
   assert.equal(store.snapshots({ dirtyOnly: true }).length, 0);
 });
+
+test("MetricsStore prunes buckets older than the retention window", () => {
+  const store = new MetricsStore({ retentionMinutes: 5 });
+  const old = new Date("2026-01-20T12:00:00.000Z");
+  const recent = new Date("2026-01-20T12:10:00.000Z");
+
+  store.record({ service: "checkout", latency_ms: 100, is_error: false, timestamp: old });
+  // Recording a later event triggers prune() against `recent`, which is well
+  // past the 5-minute retention window for the "old" bucket.
+  store.record({ service: "checkout", latency_ms: 90, is_error: false, timestamp: recent });
+
+  const buckets = store.snapshots();
+  assert.equal(buckets.length, 1);
+  assert.equal(buckets[0].minute_bucket, "2026-01-20T12:10:00.000Z");
+});

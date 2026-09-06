@@ -17,10 +17,25 @@ const services = [
 ];
 
 const totalWeight = services.reduce((sum, service) => sum + service.weight, 0);
+
+// Local Redpanda needs neither SSL nor SASL; Upstash Kafka (and most hosted
+// brokers) require SASL_SSL, set via these env vars in production.
+const ssl = process.env.KAFKA_SSL === "true";
+const sasl =
+  process.env.KAFKA_SASL_USERNAME && process.env.KAFKA_SASL_PASSWORD
+    ? {
+        mechanism: process.env.KAFKA_SASL_MECHANISM || "scram-sha-256",
+        username: process.env.KAFKA_SASL_USERNAME,
+        password: process.env.KAFKA_SASL_PASSWORD,
+      }
+    : undefined;
+
 const kafka = new Kafka({
   clientId: "streamsense-simulator",
   brokers,
   logLevel: logLevel.INFO,
+  ssl,
+  sasl,
   retry: { initialRetryTime: 500, retries: 12 },
 });
 const producer = kafka.producer({

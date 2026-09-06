@@ -1,4 +1,7 @@
 import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 const DEFAULT_WINDOW_MINUTES = 15;
 const MIN_WINDOW_MINUTES = 5;
@@ -154,10 +157,29 @@ export function buildMetricsPayload(rows, windowMinutes, now = new Date()) {
   };
 }
 
+// Comma-separated list of allowed browser origins. Empty by default (deny all
+// cross-origin requests) so a missing env var fails closed rather than open.
+function corsAllowedOrigins() {
+  return (process.env.CORS_ALLOWED_ORIGINS || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
+const metricsLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export function createApp({ pool, logger = console }) {
   const app = express();
 
   app.disable("x-powered-by");
+  app.use(helmet());
+  app.use(cors({ origin: corsAllowedOrigins() }));
+  app.use(metricsLimiter);
   app.use(express.json({ limit: "32kb" }));
   app.use((request, response, next) => {
     response.set("Cache-Control", "no-store");
