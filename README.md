@@ -159,6 +159,8 @@ GitHub Actions runs locked installs, the complete verification suite, Compose
 configuration validation, and a clean Docker smoke test that waits until the
 simulator's events are queryable through the API.
 
+Release evidence: [successful GitHub Actions pipeline](https://github.com/aaryabookseller16/Stream-Sense/actions/runs/34055151395).
+
 ## Deployment
 
 The public website is a static Vite build deployed on Vercel. It has no secrets,

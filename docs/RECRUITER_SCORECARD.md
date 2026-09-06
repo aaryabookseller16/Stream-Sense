@@ -9,11 +9,11 @@ least 4/5, the total must reach 26/30, and no critical finding may remain.
 |---|---:|---|---|
 | Correctness and functionality | 4.5/5 | API and aggregation contracts are tested; the hosted dashboard has deterministic data; Docker smoke test exercises the complete path in CI. | Strong end-to-end story. Production-scale percentile aggregation would need a bounded algorithm. |
 | Architecture and data contracts | 4.5/5 | Simulator → Kafka → worker → PostgreSQL → API boundaries are explicit; minute/service grain is enforced by a primary key. | Components have clear ownership and failure boundaries. A schema registry would be the next mature step. |
-| Code quality and security | 4.5/5 | Input validation, rate limiting, Helmet, fail-closed CORS, environment-based secrets, locked dependencies, and zero production audit findings. | Sensible defaults and readable modules. Structured logging would improve production operations. |
-| Testing and reproducibility | 4.0/5 | 18 automated tests, lint, production build, deterministic showcase data, locked installs, and CI Compose smoke test. | Good release discipline. A sustained-load test would add confidence beyond smoke coverage. |
+| Code quality and security | 4.5/5 | Input validation, rate limiting, Helmet, fail-closed CORS, environment-based secrets, locked dependencies, and zero dependency audit findings. | Sensible defaults and readable modules. Structured logging would improve production operations. |
+| Testing and reproducibility | 4.5/5 | 18 automated tests, lint, production build, deterministic showcase data, locked installs, and a green CI Compose smoke test. | Good release discipline. A sustained-load test would add confidence beyond smoke coverage. |
 | UI, accessibility, and product judgment | 4.5/5 | Responsive editorial interface, keyboard focus, reduced motion, semantic table, error/empty/loading states, and explicit data provenance. | The product feels intentional and honest. A future release could add saved views without cluttering the core. |
-| Documentation and deployment readiness | 4.0/5 | Live URL, architecture, contracts, commands, limitations, deployment model, and CI evidence are documented. | Clear enough for a recruiter to run and evaluate. Full hosted streaming infrastructure is deliberately out of scope. |
-| **Total** | **26.0/30** | **All category floors pass.** | **Release awaits production deployment and green CI confirmation.** |
+| Documentation and deployment readiness | 4.5/5 | Verified live URL, architecture, contracts, commands, limitations, deployment model, and successful CI evidence are documented. | Clear enough for a recruiter to run and evaluate. Full hosted streaming infrastructure is deliberately out of scope. |
+| **Total** | **27.0/30** | **All category floors pass; no critical or high-severity findings remain.** | **Release accepted.** |
 
 ## Coherent-change reviews
 
@@ -49,7 +49,7 @@ least 4/5, the total must reach 26/30, and no critical finding may remain.
 - [x] Hosted interface works without private infrastructure.
 - [x] Full live pipeline remains runnable through Docker Compose.
 - [x] Automated unit, component, lint, and build gates pass locally.
-- [x] Production dependency audits report no known vulnerabilities.
-- [ ] GitHub Actions verifies the complete Docker pipeline.
-- [ ] Production Vercel URL is deployed and checked.
-- [ ] Repository and project tracker are clean and current.
+- [x] Dependency audits report no known vulnerabilities.
+- [x] GitHub Actions verifies the complete Docker pipeline.
+- [x] Production Vercel URL is deployed and checked.
+- [x] Repository and project tracker are clean and current.
