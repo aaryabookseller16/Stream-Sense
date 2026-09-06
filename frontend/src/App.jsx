@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import AboutPage from "./AboutPage";
 import DashboardPage from "./DashboardPage";
 import LandingPage from "./LandingPage";
 
 function normalizePath(pathname) {
-  return pathname === "/dashboard" ? "/dashboard" : "/";
+  return ["/dashboard", "/about"].includes(pathname) ? pathname : "/";
 }
 
 function App() {
@@ -16,10 +17,11 @@ function App() {
   }, []);
 
   useEffect(() => {
-    document.title =
-      path === "/dashboard"
-        ? "Live dashboard · StreamSense"
-        : "StreamSense · Realtime service intelligence";
+    document.title = {
+      "/dashboard": "Dashboard · StreamSense",
+      "/about": "About · StreamSense",
+      "/": "StreamSense · Realtime service intelligence",
+    }[path];
   }, [path]);
 
   function navigate(nextPath) {
@@ -33,6 +35,8 @@ function App() {
     <div className="route-stage" key={path}>
       {path === "/dashboard" ? (
         <DashboardPage onNavigate={navigate} />
+      ) : path === "/about" ? (
+        <AboutPage onNavigate={navigate} />
       ) : (
         <LandingPage onNavigate={navigate} />
       )}

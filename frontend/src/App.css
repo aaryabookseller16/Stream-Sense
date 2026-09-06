@@ -14,6 +14,17 @@
   padding: var(--space-4) 0;
 }
 
+.topbar::before {
+  content: "";
+  position: fixed;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: var(--coral);
+}
+
 .topbar,
 .hero,
 .app-shell main,
@@ -63,12 +74,14 @@
   height: 12px;
   align-self: flex-end;
   opacity: 0.7;
+  background: var(--cobalt);
 }
 
 .brand__mark i:nth-child(3) {
   height: 8px;
   align-self: flex-end;
   opacity: 0.45;
+  background: var(--coral);
 }
 
 .topbar__actions {
@@ -145,6 +158,26 @@
   font-weight: 600;
 }
 
+.data-banner--demo {
+  background: #eef6bd;
+  border-color: #c4d75d;
+}
+
+.data-banner--demo .data-banner__mark {
+  background: var(--ink);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.data-banner--live {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.data-banner--live p,
+.data-banner--live p strong,
+.data-banner--live a { color: #ffffff; }
+
 .live-dot {
   width: 8px;
   height: 8px;
@@ -178,7 +211,7 @@
 
 .hero h1 {
   font-size: var(--font-size-2xl);
-  font-weight: 600;
+  font-weight: 400;
   margin: 0 0 var(--space-2);
   letter-spacing: -0.01em;
   max-width: 32ch;
@@ -297,7 +330,18 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-4);
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
+
+.metric-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.metric-card--accent { background: #e9e3ff; }
+.metric-card--positive { background: #eef6bd; }
+.metric-card--warning { background: #fff0bd; }
+.metric-card--danger { background: #ffe3dc; }
 
 .metric-card__eyebrow {
   color: var(--text-secondary);
@@ -363,6 +407,16 @@
   padding: var(--space-4);
 }
 
+.panel--chart {
+  color: #ffffff;
+  background: var(--ink);
+}
+
+.panel--chart .eyebrow,
+.panel--chart .legend { color: #bbb7ae; }
+
+.panel--chart .chart__grid span { border-color: rgba(255, 255, 255, 0.12); }
+
 .panel__header {
   display: flex;
   align-items: flex-start;
@@ -404,7 +458,7 @@
 }
 
 .legend__traffic {
-  background: var(--accent);
+  background: var(--citron);
 }
 .legend__errors {
   background: var(--danger);
@@ -462,7 +516,7 @@
 .chart__bar {
   width: 100%;
   min-height: 2px;
-  background: var(--accent);
+  background: var(--citron);
   border-radius: 2px 2px 0 0;
   position: relative;
 }
@@ -494,6 +548,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: var(--space-3);
+  transition: background-color 160ms ease, transform 160ms ease;
+}
+
+.service-row:hover {
+  background: #e9e3ff;
+  transform: translateX(4px);
 }
 
 .service-row__heading {
@@ -568,7 +628,7 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: var(--accent);
+  background: var(--coral);
   animation: pulse 1.6s ease infinite;
 }
 

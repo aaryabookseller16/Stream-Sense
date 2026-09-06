@@ -116,6 +116,16 @@ function DashboardPage({ onNavigate, dataMode = DEFAULT_DATA_MODE, fetchImpl = f
             <span aria-hidden="true">←</span>
             Product overview
           </a>
+          <a
+            className="topbar__back"
+            href="/about"
+            onClick={(event) => {
+              event.preventDefault();
+              onNavigate("/about");
+            }}
+          >
+            About
+          </a>
           <div className="topbar__status" aria-live="polite">
             <span className={`live-dot live-dot--${systemStatus}`} aria-hidden="true" />
             <span>

@@ -26,14 +26,14 @@ const features = [
   },
 ];
 
-function ProductLink({ children, className, onNavigate }) {
+export function PageLink({ children, className, href, onNavigate }) {
   return (
     <a
       className={className}
-      href="/dashboard"
+      href={href}
       onClick={(event) => {
         event.preventDefault();
-        onNavigate("/dashboard");
+        onNavigate(href);
       }}
     >
       {children}
@@ -41,9 +41,17 @@ function ProductLink({ children, className, onNavigate }) {
   );
 }
 
-function Brand() {
+export function Brand({ onNavigate }) {
   return (
-    <a className="landing-brand" href="/" aria-label="StreamSense home">
+    <a
+      className="landing-brand"
+      href="/"
+      aria-label="StreamSense home"
+      onClick={(event) => {
+        event.preventDefault();
+        onNavigate("/");
+      }}
+    >
       <span className="landing-brand__mark" aria-hidden="true">
         <i />
         <i />
@@ -57,19 +65,32 @@ function Brand() {
   );
 }
 
-function PipelineVisual() {
+function SignalStage() {
+  const signals = ["checkout", "catalog", "payments", "identity", "notifications"];
+
   return (
-    <ol className="pipeline-visual" aria-label="Event pipeline">
-      {pipeline.map((node, index) => (
-        <li key={node.name}>
-          <span className="pipeline-visual__index">{index + 1}</span>
-          <div>
-            <strong>{node.name}</strong>
-            <small>{node.detail}</small>
+    <div className="signal-stage" role="img" aria-label="Five service signals becoming readable telemetry">
+      <div className="signal-stage__header">
+        <span>Live signal field</span>
+        <span><i aria-hidden="true" /> 5 services online</span>
+      </div>
+      <div className="signal-stage__canvas">
+        {signals.map((signal, index) => (
+          <div className={`signal-line signal-line--${index + 1}`} key={signal}>
+            <small>{signal}</small>
+            <span className="signal-line__rail">
+              <i style={{ "--signal-delay": `${index * -0.55}s` }} />
+            </span>
+            <strong>{[34, 29, 20, 15, 11][index]}</strong>
           </div>
-        </li>
-      ))}
-    </ol>
+        ))}
+      </div>
+      <div className="signal-stage__summary">
+        <span><small>Throughput</small><strong>109/min</strong></span>
+        <span><small>Success</small><strong>98.7%</strong></span>
+        <span><small>P95</small><strong>694 ms</strong></span>
+      </div>
+    </div>
   );
 }
 
@@ -106,31 +127,32 @@ function LandingPage({ onNavigate }) {
   return (
     <div className="landing-page">
       <header className="landing-nav">
-        <Brand />
+        <Brand onNavigate={onNavigate} />
         <nav aria-label="Product navigation">
           <a href="#why">Why StreamSense</a>
           <a href="#how-it-works">How it works</a>
+          <PageLink href="/about" onNavigate={onNavigate}>About</PageLink>
         </nav>
-        <ProductLink className="nav-cta" onNavigate={onNavigate}>
+        <PageLink className="nav-cta" href="/dashboard" onNavigate={onNavigate}>
           Open dashboard
           <span aria-hidden="true">↗</span>
-        </ProductLink>
+        </PageLink>
       </header>
 
       <main>
         <section className="landing-hero">
           <div className="landing-hero__copy">
             <p className="eyebrow">Event-streaming observability</p>
-            <h1>Every service leaves a signal. Make it legible.</h1>
+            <h1>Every signal,<br /><em>made legible.</em></h1>
             <p className="landing-hero__lede">
               StreamSense transforms high-volume request events into a focused,
               real-time picture of traffic, latency, and service health.
             </p>
             <div className="landing-hero__actions">
-              <ProductLink className="button button-primary" onNavigate={onNavigate}>
+              <PageLink className="button button-primary" href="/dashboard" onNavigate={onNavigate}>
                 Explore the dashboard
                 <span aria-hidden="true">→</span>
-              </ProductLink>
+              </PageLink>
               <a className="button" href="#how-it-works">
                 See how it works
               </a>
@@ -148,7 +170,7 @@ function LandingPage({ onNavigate }) {
             </div>
           </div>
           <div className="landing-hero__visual">
-            <PipelineVisual />
+            <SignalStage />
           </div>
         </section>
 
@@ -196,9 +218,9 @@ function LandingPage({ onNavigate }) {
               <li>Average and p95 latency signals</li>
               <li>Windowed operational context</li>
             </ul>
-            <ProductLink className="button button-primary" onNavigate={onNavigate}>
+            <PageLink className="button button-primary" href="/dashboard" onNavigate={onNavigate}>
               Enter the dashboard <span aria-hidden="true">↗</span>
-            </ProductLink>
+            </PageLink>
           </div>
           <DashboardPreview />
         </section>
@@ -242,19 +264,20 @@ function LandingPage({ onNavigate }) {
             Explore a reproducible browser showcase, then run the repository locally for the
             complete live Kafka pipeline.
           </p>
-          <ProductLink className="button button-primary" onNavigate={onNavigate}>
+          <PageLink className="button button-primary" href="/dashboard" onNavigate={onNavigate}>
             Open the dashboard showcase
             <span aria-hidden="true">→</span>
-          </ProductLink>
+          </PageLink>
         </section>
       </main>
 
       <footer className="landing-footer">
-        <Brand />
+        <Brand onNavigate={onNavigate} />
         <p className="text-muted text-sm">Kafka → Worker → PostgreSQL → API → Interface</p>
-        <ProductLink className="text-sm" onNavigate={onNavigate}>
-          Dashboard ↗
-        </ProductLink>
+        <div className="landing-footer__links">
+          <PageLink className="text-sm" href="/about" onNavigate={onNavigate}>About</PageLink>
+          <PageLink className="text-sm" href="/dashboard" onNavigate={onNavigate}>Dashboard ↗</PageLink>
+        </div>
       </footer>
     </div>
   );
