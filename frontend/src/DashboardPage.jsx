@@ -115,6 +115,7 @@ function DashboardPage({ onNavigate, dataMode = DEFAULT_DATA_MODE, fetchImpl = f
             <div className="window-picker" aria-label="Metrics time window">
               {WINDOW_OPTIONS.map((option) => (
                 <button
+                  aria-pressed={windowMinutes === option}
                   className={windowMinutes === option ? "is-active" : ""}
                   key={option}
                   onClick={() => setWindowMinutes(option)}

@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MetricsStore, parseEvent, percentile95 } from "../src/metrics.js";
+import {
+  LatencyReservoir,
+  MetricsStore,
+  parseEvent,
+  percentile95,
+} from "../src/metrics.js";
 
 test("parseEvent normalizes service, status, latency, and timestamp", () => {
   const event = parseEvent(
@@ -28,6 +33,17 @@ test("parseEvent rejects malformed latency", () => {
 test("percentile95 uses nearest-rank behavior", () => {
   assert.equal(percentile95([10, 20, 30, 40, 50]), 50);
   assert.equal(percentile95([]), 0);
+});
+
+test("LatencyReservoir bounds memory while retaining a percentile sample", () => {
+  const reservoir = new LatencyReservoir(32, () => 0.5);
+  for (let latency = 1; latency <= 2_000; latency += 1) {
+    reservoir.record(latency);
+  }
+
+  assert.equal(reservoir.samples.length, 32);
+  assert.equal(reservoir.seen, 2_000);
+  assert.ok(Number.isFinite(reservoir.percentile95()));
 });
 
 test("MetricsStore creates per-minute, per-service snapshots", () => {

@@ -53,8 +53,8 @@ function AboutPage({ onNavigate }) {
 
         <section className="about-facts" aria-label="Project facts">
           <span><strong>6</strong><small>running services</small></span>
-          <span><strong>20</strong><small>automated checks</small></span>
-          <span><strong>27/30</strong><small>recruiter score</small></span>
+          <span><strong>21</strong><small>automated checks</small></span>
+          <span><strong>27.5/30</strong><small>recruiter score</small></span>
           <span><strong>0</strong><small>known vulnerabilities</small></span>
         </section>
 

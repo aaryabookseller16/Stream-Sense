@@ -110,5 +110,9 @@ describe("DashboardPage", () => {
 
     await user.click(await screen.findByRole("button", { name: "60m" }));
     expect(screen.getByText(/across the last 60 minutes/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "60m" })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
   });
 });

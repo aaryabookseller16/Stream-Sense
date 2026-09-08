@@ -7,6 +7,12 @@ function normalizePath(pathname) {
   return ["/dashboard", "/product", "/about"].includes(pathname) ? pathname : "/";
 }
 
+function preferredScrollBehavior() {
+  return window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    ? "auto"
+    : "smooth";
+}
+
 function App() {
   const [path, setPath] = useState(() => normalizePath(window.location.pathname));
 
@@ -29,7 +35,7 @@ function App() {
     if (nextPath === path) return;
     window.history.pushState({}, "", nextPath);
     setPath(nextPath);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: preferredScrollBehavior() });
   }
 
   return (

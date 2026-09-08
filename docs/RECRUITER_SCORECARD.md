@@ -8,12 +8,12 @@ least 4/5, the total must reach 26/30, and no critical finding may remain.
 | Category | Score | Evidence | Recruiter critique |
 |---|---:|---|---|
 | Correctness and functionality | 4.5/5 | API and aggregation contracts are tested; the hosted dashboard has deterministic data; Docker smoke test exercises the complete path in CI. | Strong end-to-end story. Production-scale percentile aggregation would need a bounded algorithm. |
-| Architecture and data contracts | 4.5/5 | Simulator → Kafka → worker → PostgreSQL → API boundaries are explicit; minute/service grain is enforced by a primary key. | Components have clear ownership and failure boundaries. A schema registry would be the next mature step. |
+| Architecture and data contracts | 5/5 | Simulator → Kafka → worker → PostgreSQL → API boundaries are explicit; minute/service grain is enforced by a primary key; latency sampling is capped per bucket. | Components have clear ownership, bounded in-memory state, and explicit failure boundaries. A schema registry would be the next mature step. |
 | Code quality and security | 4.5/5 | Input validation, rate limiting, Helmet, fail-closed CORS, environment-based secrets, locked dependencies, and zero dependency audit findings. | Sensible defaults and readable modules. Structured logging would improve production operations. |
-| Testing and reproducibility | 4.5/5 | 20 automated tests, lint, production build, deterministic showcase data, locked installs, and a green CI Compose smoke test. | Good release discipline. A sustained-load test would add confidence beyond smoke coverage. |
+| Testing and reproducibility | 4.5/5 | 21 automated tests, lint, production build, deterministic showcase data, locked installs, and a green CI Compose smoke test. | Good release discipline. A sustained-load test would add confidence beyond smoke coverage. |
 | UI, accessibility, and product judgment | 4.5/5 | Responsive editorial landing, About, and dashboard routes; keyboard focus, reduced motion, semantic table, error/empty/loading states, and explicit data provenance. | The stronger color and motion system is distinctive without compromising operational scan speed. |
 | Documentation and deployment readiness | 4.5/5 | Verified live URL, architecture, contracts, commands, limitations, deployment model, and successful CI evidence are documented. | Clear enough for a recruiter to run and evaluate. Full hosted streaming infrastructure is deliberately out of scope. |
-| **Total** | **27.0/30** | **All category floors pass; no critical or high-severity findings remain.** | **Release accepted.** |
+| **Total** | **27.5/30** | **All category floors pass; no critical or high-severity findings remain.** | **Release accepted.** |
 
 ## Coherent-change reviews
 
@@ -62,6 +62,17 @@ least 4/5, the total must reach 26/30, and no critical finding may remain.
   every page. The former product landing now lives at `/product`.
 - **Judgment:** Information architecture is now predictable and the first page
   gives recruiters the right context before they inspect the product surface.
+
+### 6. Bounded telemetry and readability pass
+
+- **Finding:** Each active minute bucket retained every latency value, while the
+  15px body and 13px label system reduced readability at common laptop distances.
+- **Change:** Added capped reservoir sampling with regression coverage, increased
+  body and label sizes, introduced an editorial display/body type pairing, marked
+  time-window state for assistive technology, and respected reduced-motion settings
+  during route navigation.
+- **Judgment:** The worker now has a defensible memory bound and the interface is
+  easier to scan without losing its compact operational character.
 
 ## Final acceptance checklist
 

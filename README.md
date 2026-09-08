@@ -37,7 +37,9 @@ flowchart LR
 The worker groups events by service and UTC minute and persists request count,
 error count, average latency, and p95 latency. `(minute_bucket, service)` is the
 database primary key, so repeated flushes update a stable window instead of
-creating duplicates. In-memory aggregation retains two hours of active windows.
+creating duplicates. In-memory aggregation retains two hours of active windows,
+with a 512-value reservoir per service-minute bucket so percentile memory stays
+bounded as traffic rises. Buckets under that limit retain exact nearest-rank p95.
 
 ## Try the complete live pipeline
 
@@ -137,7 +139,7 @@ Node.js 22 or later is required.
 
 ```bash
 npm run install:all   # locked installs for all four applications
-npm run verify        # 20 unit/component tests, lint, production build
+npm run verify        # 21 unit/component tests, lint, production build
 npm run smoke:compose # clean end-to-end pipeline smoke test (requires Docker)
 ```
 
@@ -159,7 +161,7 @@ GitHub Actions runs locked installs, the complete verification suite, Compose
 configuration validation, and a clean Docker smoke test that waits until the
 simulator's events are queryable through the API.
 
-Release evidence: [successful GitHub Actions pipeline](https://github.com/aaryabookseller16/Stream-Sense/actions/runs/34055151395).
+Release evidence: [GitHub Actions workflow](https://github.com/aaryabookseller16/Stream-Sense/actions/workflows/ci.yml).
 
 ## Deployment
 
@@ -212,8 +214,9 @@ all other `.env` files are ignored.
 ## Engineering limits
 
 - The public site is a reproducible product showcase, not live production telemetry.
-- Aggregation is designed for a portfolio-scale demo; a high-volume deployment
-  would move percentile calculation to a bounded histogram or streaming sketch.
+- P95 uses bounded reservoir sampling after 512 events per service-minute. A
+  production observability platform should use a histogram or streaming sketch
+  with explicit error guarantees and cross-instance merge support.
 - Authentication, alert delivery, and multi-tenant isolation are future product work.
 - The summary p95 is the highest service p95, a deliberate worst-service signal,
   rather than a mathematically merged percentile across services.

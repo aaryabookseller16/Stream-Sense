@@ -45,7 +45,7 @@
 
 .about-hero__copy p:first-child {
   color: var(--text-primary);
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 25px;
   line-height: 1.4;
 }
@@ -73,7 +73,7 @@
 .about-facts span:nth-child(4) { background: var(--coral); }
 
 .about-facts strong {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   font-size: 40px;
   font-weight: 400;
 }

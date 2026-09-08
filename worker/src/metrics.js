@@ -1,10 +1,40 @@
 const MAX_LATENCY_MS = 120_000;
 const RETENTION_MINUTES = 120;
+const MAX_LATENCY_SAMPLES = 512;
 
 function percentile95(values) {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
   return sorted[Math.max(0, Math.ceil(sorted.length * 0.95) - 1)];
+}
+
+export class LatencyReservoir {
+  constructor(limit = MAX_LATENCY_SAMPLES, random = Math.random) {
+    if (!Number.isInteger(limit) || limit < 1) {
+      throw new TypeError("Latency sample limit must be a positive integer");
+    }
+    this.limit = limit;
+    this.random = random;
+    this.samples = [];
+    this.seen = 0;
+  }
+
+  record(value) {
+    this.seen += 1;
+    if (this.samples.length < this.limit) {
+      this.samples.push(value);
+      return;
+    }
+
+    const replacementIndex = Math.floor(this.random() * this.seen);
+    if (replacementIndex < this.limit) {
+      this.samples[replacementIndex] = value;
+    }
+  }
+
+  percentile95() {
+    return percentile95(this.samples);
+  }
 }
 
 function normalizeService(value, fallback) {
@@ -50,10 +80,16 @@ export function parseEvent(messageValue, fallbackService = "unknown-service") {
 }
 
 export class MetricsStore {
-  constructor({ retentionMinutes = RETENTION_MINUTES } = {}) {
+  constructor({
+    retentionMinutes = RETENTION_MINUTES,
+    maxLatencySamples = MAX_LATENCY_SAMPLES,
+    random = Math.random,
+  } = {}) {
     this.buckets = new Map();
     this.dirtyKeys = new Set();
     this.retentionMinutes = retentionMinutes;
+    this.maxLatencySamples = maxLatencySamples;
+    this.random = random;
   }
 
   record(event) {
@@ -66,7 +102,7 @@ export class MetricsStore {
       event_count: 0,
       error_count: 0,
       latency_sum: 0,
-      latencies: [],
+      latencies: new LatencyReservoir(this.maxLatencySamples, this.random),
       last_event_at: event.timestamp.toISOString(),
       version: 0,
     };
@@ -74,7 +110,7 @@ export class MetricsStore {
     bucket.event_count += 1;
     bucket.error_count += event.is_error ? 1 : 0;
     bucket.latency_sum += event.latency_ms;
-    bucket.latencies.push(event.latency_ms);
+    bucket.latencies.record(event.latency_ms);
     if (event.timestamp > new Date(bucket.last_event_at)) {
       bucket.last_event_at = event.timestamp.toISOString();
     }
@@ -109,7 +145,7 @@ export class MetricsStore {
       avg_latency_ms: Number(
         (bucket.latency_sum / bucket.event_count).toFixed(2)
       ),
-      p95_latency_ms: Number(percentile95(bucket.latencies).toFixed(2)),
+      p95_latency_ms: Number(bucket.latencies.percentile95().toFixed(2)),
       last_event_at: bucket.last_event_at,
       _key: `${bucket.minute_bucket}::${bucket.service}`,
       _version: bucket.version,
