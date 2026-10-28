@@ -1,6 +1,6 @@
 # StreamSense
 
-StreamSense is a recruiter-ready streaming analytics product for understanding
+StreamSense is a streaming analytics product for understanding
 service traffic, latency, and failures in near real time.
 
 - **Live product showcase:** [streamsense-web.vercel.app](https://streamsense-web.vercel.app)
